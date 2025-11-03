@@ -1,13 +1,14 @@
 package ohio.rizz.streamingservice.service.type.chain;
 
+import java.util.List;
 import java.util.Objects;
 
 abstract public class AbstractSuffixTypeGetterHandler {
-    private final String contentType;
+    private final List<String> contentTypes;
     protected AbstractSuffixTypeGetterHandler next;
 
-    public AbstractSuffixTypeGetterHandler(String contentType) {
-        this.contentType = contentType;
+    public AbstractSuffixTypeGetterHandler(List<String> contentTypes) {
+        this.contentTypes = contentTypes;
     }
 
     public AbstractSuffixTypeGetterHandler setNext(AbstractSuffixTypeGetterHandler nextHandler) {
@@ -16,12 +17,14 @@ abstract public class AbstractSuffixTypeGetterHandler {
     }
 
     public String handle(String contentType) {
-        if (this.contentType.equals(contentType)) {
-            return getSuffix(contentType);
+        for (var type : contentTypes) {
+            if (type.equals(contentType)) {
+                return getSuffix(contentType);
+            }
         }
 
         if (Objects.nonNull(next)) {
-            next.handle(contentType);
+            return next.handle(contentType);
         }
         throw new IllegalArgumentException("missing processed type: " + contentType);
     }
