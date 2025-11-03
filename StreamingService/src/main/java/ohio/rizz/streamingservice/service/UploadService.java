@@ -2,6 +2,7 @@ package ohio.rizz.streamingservice.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import ohio.rizz.streamingservice.service.metadata.MetadataParserService;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 

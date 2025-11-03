@@ -1,4 +1,4 @@
-package ohio.rizz.streamingservice.service;
+package ohio.rizz.streamingservice.service.metadata;
 
 import org.jaudiotagger.audio.AudioHeader;
 import org.jaudiotagger.tag.Tag;

@@ -1,4 +1,4 @@
-package ohio.rizz.streamingservice.service;
+package ohio.rizz.streamingservice.service.metadata;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -6,7 +6,7 @@ import ohio.rizz.streamingservice.dto.AlbumDto;
 import ohio.rizz.streamingservice.dto.ArtistDto;
 import ohio.rizz.streamingservice.dto.GenreDto;
 import ohio.rizz.streamingservice.dto.SongDto;
-import ohio.rizz.streamingservice.service.type.ContentTypeService;
+import ohio.rizz.streamingservice.service.metadata.type.ContentTypeService;
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.audio.AudioHeader;
@@ -64,8 +64,14 @@ public class MetadataParserService {
         var releaseDate = Year.parse(tag.getFirstField(FieldKey.YEAR).toString());
         var genre = new GenreDto(tag.getFirstField(FieldKey.GENRE).toString());
 
-        log.debug("\nTotal info about album:\nName - {}\nRelease date - {}\nGenre - {}", name, releaseDate, genre);
-        return new AlbumDto(name, releaseDate, genre);
+        var discMetadata = getDiskMetadata(tag.getFirst(FieldKey.DISC_NO));
+
+        log.debug("\nTotal info about album:\nName - {}\nRelease date - {}\nGenre - {}\nDisc - {}",
+                  name,
+                  releaseDate,
+                  genre,
+                  discMetadata);
+        return new AlbumDto(name, releaseDate, discMetadata.totalDisk(), genre);
     }
 
     private ArtistDto getArtistDto(Tag tag) {
@@ -80,8 +86,15 @@ public class MetadataParserService {
         var duration = header.getTrackLength();
         var trackNumberAlbum = Short.parseShort(tag.getFirst(FieldKey.TRACK));
 
-        log.debug("\nTotal info about song:\nName - {}\nDuration - {}\nTrack number in album - {}", name, duration,
-                  trackNumberAlbum);
-        return new SongDto(name, duration, trackNumberAlbum, artist, album);
+        var discMetadata = getDiskMetadata(tag.getFirst(FieldKey.DISC_NO));
+
+        log.debug("\nTotal info about song:\nName - {}\nDuration - {}\nTrack number in album - {}\nDisc - {}", name,
+                  duration, trackNumberAlbum, discMetadata);
+        return new SongDto(name, discMetadata.currentDisk(), duration, trackNumberAlbum, artist, album);
+    }
+
+    private DiscMetadata getDiskMetadata(String rawData) {
+        var separatedStrings = rawData.split("/");
+        return new DiscMetadata(Short.parseShort(separatedStrings[0]), Short.parseShort(separatedStrings[1]));
     }
 }

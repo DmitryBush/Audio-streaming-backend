@@ -1,7 +1,7 @@
-package ohio.rizz.streamingservice.service.type;
+package ohio.rizz.streamingservice.service.metadata.type;
 
 import lombok.RequiredArgsConstructor;
-import ohio.rizz.streamingservice.service.type.chain.AbstractSuffixTypeGetterHandler;
+import ohio.rizz.streamingservice.service.metadata.type.chain.AbstractSuffixTypeGetterHandler;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
