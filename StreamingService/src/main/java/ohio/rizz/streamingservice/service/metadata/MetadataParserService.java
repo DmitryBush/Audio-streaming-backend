@@ -6,7 +6,7 @@ import ohio.rizz.streamingservice.dto.AlbumDto;
 import ohio.rizz.streamingservice.dto.ArtistDto;
 import ohio.rizz.streamingservice.dto.GenreDto;
 import ohio.rizz.streamingservice.dto.SongDto;
-import ohio.rizz.streamingservice.service.metadata.type.ContentTypeService;
+import ohio.rizz.streamingservice.service.type.ContentTypeService;
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.audio.AudioHeader;
@@ -17,44 +17,34 @@ import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.TagException;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
 import java.time.Year;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class MetadataParserService {
-    private final ContentTypeService contentTypeService;
 
-    public SongDto extractMetadataFromFile(MultipartFile multipartFile) {
-        AudioFileMetadata metadata = readAudioFileMetadata(multipartFile);
+    public SongDto extractMetadataFromFile(File file) {
+        AudioFileMetadata metadata = readAudioFileMetadata(file);
 
         var album = getAlbumDto(metadata.tag());
         var artist = getArtistDto(metadata.tag());
         return getSongDto(metadata.tag(), metadata.header(), artist, album);
     }
 
-    private AudioFileMetadata readAudioFileMetadata(MultipartFile multipartFile) {
+    private AudioFileMetadata readAudioFileMetadata(File file) {
         AudioHeader header;
         Tag tag;
-        File tempFile = null;
         try {
-            tempFile = File.createTempFile("upload_", contentTypeService.getSuffixType(multipartFile));
-            multipartFile.transferTo(tempFile);
-
-            AudioFile audioFile = AudioFileIO.read(tempFile);
+            AudioFile audioFile = AudioFileIO.read(file);
             header = audioFile.getAudioHeader();
             tag = audioFile.getTag();
-        } catch (ReadOnlyFileException | IOException | CannotReadException | TagException |
-                 InvalidAudioFrameException e) {
+        } catch (CannotReadException | IOException | ReadOnlyFileException | InvalidAudioFrameException
+                 | TagException e) {
             throw new RuntimeException(e);
-        } finally {
-            Optional.ofNullable(tempFile)
-                    .ifPresent(File::delete);
         }
         return new AudioFileMetadata(header, tag);
     }

@@ -1,4 +1,4 @@
-package ohio.rizz.streamingservice.service.metadata.type.chain;
+package ohio.rizz.streamingservice.service.type.chain;
 
 public class FlacSuffixTypeGetterHandler extends AbstractSuffixTypeGetterHandler {
     public FlacSuffixTypeGetterHandler() {
