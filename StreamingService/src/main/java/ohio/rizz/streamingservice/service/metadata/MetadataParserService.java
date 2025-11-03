@@ -6,6 +6,7 @@ import ohio.rizz.streamingservice.dto.AlbumDto;
 import ohio.rizz.streamingservice.dto.ArtistDto;
 import ohio.rizz.streamingservice.dto.GenreDto;
 import ohio.rizz.streamingservice.dto.SongDto;
+import ohio.rizz.streamingservice.service.metadata.exception.AbsentImportantMetadataException;
 import ohio.rizz.streamingservice.service.type.ContentTypeService;
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
@@ -16,11 +17,14 @@ import org.jaudiotagger.audio.exceptions.ReadOnlyFileException;
 import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.TagException;
+import org.jaudiotagger.tag.TagField;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
 import java.time.Year;
+import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -50,33 +54,57 @@ public class MetadataParserService {
     }
 
     private AlbumDto getAlbumDto(Tag tag) {
-        var name = tag.getFirstField(FieldKey.ALBUM).toString();
-        var releaseDate = Year.parse(tag.getFirstField(FieldKey.YEAR).toString());
-        var genre = new GenreDto(tag.getFirstField(FieldKey.GENRE).toString());
+        var name = tag.getFirstField(FieldKey.ALBUM);
+        if (Objects.isNull(name)) {
+            return null;
+        }
 
-        var discMetadata = getDiskMetadata(tag.getFirst(FieldKey.DISC_NO));
+        var releaseDate = Optional.ofNullable(tag.getFirstField(FieldKey.YEAR))
+                .map(TagField::toString)
+                .map(s -> s.isBlank() ? null : s)
+                .map(Year::parse)
+                .orElse(null);
+        var genre = Optional.ofNullable(tag.getFirstField(FieldKey.GENRE))
+                .map(TagField::toString)
+                .map(s -> s.isBlank() ? null : s)
+                .map(GenreDto::new)
+                .orElse(null);
+
+        var discMetadata = Optional.ofNullable(tag.getFirst(FieldKey.DISC_NO))
+                .map(this::getDiskMetadata)
+                .orElseGet(() -> new DiscMetadata((short) 1, (short) 1));
 
         log.debug("\nTotal info about album:\nName - {}\nRelease date - {}\nGenre - {}\nDisc - {}",
                   name,
                   releaseDate,
                   genre,
                   discMetadata);
-        return new AlbumDto(name, releaseDate, discMetadata.totalDisk(), genre);
+        return new AlbumDto(name.toString(), releaseDate, discMetadata.totalDisk(), genre);
     }
 
     private ArtistDto getArtistDto(Tag tag) {
-        var name = tag.getFirstField(FieldKey.ARTIST).toString();
+        var name = tag.getFirstField(FieldKey.ARTIST);
+        if (Objects.isNull(name)) {
+            return null;
+        }
 
         log.debug("\nTotal info about artist:\nName - {}", name);
-        return new ArtistDto(name);
+        return new ArtistDto(name.toString());
     }
 
     private SongDto getSongDto(Tag tag, AudioHeader header, ArtistDto artist, AlbumDto album) {
-        var name = tag.getFirstField(FieldKey.TITLE).toString();
+        var name = Optional.ofNullable(tag.getFirstField(FieldKey.TITLE))
+                .map(TagField::toString)
+                .orElseThrow(() -> new AbsentImportantMetadataException("The track title must be specified"));
         var duration = header.getTrackLength();
-        var trackNumberAlbum = Short.parseShort(tag.getFirst(FieldKey.TRACK));
+        var trackNumberAlbum = Optional.ofNullable(tag.getFirst(FieldKey.TRACK))
+                .map(s -> s.isBlank() ? null : s)
+                .map(Short::parseShort)
+                .orElse(null);
 
-        var discMetadata = getDiskMetadata(tag.getFirst(FieldKey.DISC_NO));
+        var discMetadata = Optional.ofNullable(tag.getFirst(FieldKey.DISC_NO))
+                .map(this::getDiskMetadata)
+                .orElseGet(() -> new DiscMetadata((short) 1, (short) 1));
 
         log.debug("\nTotal info about song:\nName - {}\nDuration - {}\nTrack number in album - {}\nDisc - {}", name,
                   duration, trackNumberAlbum, discMetadata);
@@ -84,6 +112,9 @@ public class MetadataParserService {
     }
 
     private DiscMetadata getDiskMetadata(String rawData) {
+        if (rawData.isBlank()) {
+            return null;
+        }
         var separatedStrings = rawData.split("/");
         return new DiscMetadata(Short.parseShort(separatedStrings[0]), Short.parseShort(separatedStrings[1]));
     }

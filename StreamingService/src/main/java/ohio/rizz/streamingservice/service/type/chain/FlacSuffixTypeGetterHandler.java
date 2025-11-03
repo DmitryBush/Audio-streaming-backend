@@ -1,8 +1,10 @@
 package ohio.rizz.streamingservice.service.type.chain;
 
+import java.util.Collections;
+
 public class FlacSuffixTypeGetterHandler extends AbstractSuffixTypeGetterHandler {
     public FlacSuffixTypeGetterHandler() {
-        super("audio/x-flac");
+        super(Collections.singletonList("audio/x-flac"));
     }
 
     @Override
