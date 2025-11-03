@@ -61,10 +61,12 @@ public class MetadataParserService {
 
         var releaseDate = Optional.ofNullable(tag.getFirstField(FieldKey.YEAR))
                 .map(TagField::toString)
+                .map(s -> s.isBlank() ? null : s)
                 .map(Year::parse)
                 .orElse(null);
         var genre = Optional.ofNullable(tag.getFirstField(FieldKey.GENRE))
                 .map(TagField::toString)
+                .map(s -> s.isBlank() ? null : s)
                 .map(GenreDto::new)
                 .orElse(null);
 
@@ -96,6 +98,7 @@ public class MetadataParserService {
                 .orElseThrow(() -> new AbsentImportantMetadataException("The track title must be specified"));
         var duration = header.getTrackLength();
         var trackNumberAlbum = Optional.ofNullable(tag.getFirst(FieldKey.TRACK))
+                .map(s -> s.isBlank() ? null : s)
                 .map(Short::parseShort)
                 .orElse(null);
 
@@ -109,6 +112,9 @@ public class MetadataParserService {
     }
 
     private DiscMetadata getDiskMetadata(String rawData) {
+        if (rawData.isBlank()) {
+            return null;
+        }
         var separatedStrings = rawData.split("/");
         return new DiscMetadata(Short.parseShort(separatedStrings[0]), Short.parseShort(separatedStrings[1]));
     }
