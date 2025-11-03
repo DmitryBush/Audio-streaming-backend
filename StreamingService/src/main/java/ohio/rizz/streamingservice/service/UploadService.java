@@ -12,6 +12,6 @@ public class UploadService {
 
     @SneakyThrows
     public void uploadFile(MultipartFile file) {
-        metadataParserService.extractMetadata(file);
+        metadataParserService.extractMetadataFromFile(file);
     }
 }

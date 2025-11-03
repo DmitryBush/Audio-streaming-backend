@@ -2,6 +2,10 @@ package ohio.rizz.streamingservice.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import ohio.rizz.streamingservice.dto.AlbumDto;
+import ohio.rizz.streamingservice.dto.ArtistDto;
+import ohio.rizz.streamingservice.dto.GenreDto;
+import ohio.rizz.streamingservice.dto.SongDto;
 import ohio.rizz.streamingservice.service.type.ContentTypeService;
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
@@ -17,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.Year;
 import java.util.Optional;
 
 @Service
@@ -25,11 +30,12 @@ import java.util.Optional;
 public class MetadataParserService {
     private final ContentTypeService contentTypeService;
 
-    public void extractMetadata(MultipartFile multipartFile) {
+    public SongDto extractMetadataFromFile(MultipartFile multipartFile) {
         AudioFileMetadata metadata = readAudioFileMetadata(multipartFile);
 
-        System.out.println(metadata.header().getTrackLength());
-        System.out.println(metadata.tag().getFirstField(FieldKey.ARTIST));
+        var album = getAlbumDto(metadata.tag());
+        var artist = getArtistDto(metadata.tag());
+        return getSongDto(metadata.tag(), metadata.header(), artist, album);
     }
 
     private AudioFileMetadata readAudioFileMetadata(MultipartFile multipartFile) {
@@ -51,5 +57,31 @@ public class MetadataParserService {
                     .ifPresent(File::delete);
         }
         return new AudioFileMetadata(header, tag);
+    }
+
+    private AlbumDto getAlbumDto(Tag tag) {
+        var name = tag.getFirstField(FieldKey.ALBUM).toString();
+        var releaseDate = Year.parse(tag.getFirstField(FieldKey.YEAR).toString());
+        var genre = new GenreDto(tag.getFirstField(FieldKey.GENRE).toString());
+
+        log.debug("\nTotal info about album:\nName - {}\nRelease date - {}\nGenre - {}", name, releaseDate, genre);
+        return new AlbumDto(name, releaseDate, genre);
+    }
+
+    private ArtistDto getArtistDto(Tag tag) {
+        var name = tag.getFirstField(FieldKey.ARTIST).toString();
+
+        log.debug("\nTotal info about artist:\nName - {}", name);
+        return new ArtistDto(name);
+    }
+
+    private SongDto getSongDto(Tag tag, AudioHeader header, ArtistDto artist, AlbumDto album) {
+        var name = tag.getFirstField(FieldKey.TITLE).toString();
+        var duration = header.getTrackLength();
+        var trackNumberAlbum = Short.parseShort(tag.getFirst(FieldKey.TRACK));
+
+        log.debug("\nTotal info about song:\nName - {}\nDuration - {}\nTrack number in album - {}", name, duration,
+                  trackNumberAlbum);
+        return new SongDto(name, duration, trackNumberAlbum, artist, album);
     }
 }
