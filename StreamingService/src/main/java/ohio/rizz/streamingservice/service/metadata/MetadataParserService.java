@@ -7,7 +7,6 @@ import ohio.rizz.streamingservice.dto.ArtistDto;
 import ohio.rizz.streamingservice.dto.GenreDto;
 import ohio.rizz.streamingservice.dto.SongDto;
 import ohio.rizz.streamingservice.service.metadata.exception.AbsentImportantMetadataException;
-import ohio.rizz.streamingservice.service.type.ContentTypeService;
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.audio.AudioHeader;
@@ -25,11 +24,13 @@ import java.io.IOException;
 import java.time.Year;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class MetadataParserService {
+    private final Pattern metadataPattern = Pattern.compile("(?<=\")[^\"]+?(?=\")");
 
     public SongDto extractMetadataFromFile(File file) {
         AudioFileMetadata metadata = readAudioFileMetadata(file);
@@ -54,19 +55,26 @@ public class MetadataParserService {
     }
 
     private AlbumDto getAlbumDto(Tag tag) {
-        var name = tag.getFirstField(FieldKey.ALBUM);
+        var name = Optional.ofNullable(tag.getFirstField(FieldKey.ALBUM))
+                .map(TagField::toString)
+                .map(MetadataParserService::removeZeroBit)
+                .map(this::extractMetadataText)
+                .orElse(null);
         if (Objects.isNull(name)) {
             return null;
         }
 
         var releaseDate = Optional.ofNullable(tag.getFirstField(FieldKey.YEAR))
                 .map(TagField::toString)
-                .map(s -> s.isBlank() ? null : s)
+                .map(MetadataParserService::removeZeroBit)
+                .map(this::extractMetadataText)
                 .map(Year::parse)
                 .orElse(null);
         var genre = Optional.ofNullable(tag.getFirstField(FieldKey.GENRE))
                 .map(TagField::toString)
                 .map(s -> s.isBlank() ? null : s)
+                .map(MetadataParserService::removeZeroBit)
+                .map(this::extractMetadataText)
                 .map(GenreDto::new)
                 .orElse(null);
 
@@ -79,22 +87,28 @@ public class MetadataParserService {
                   releaseDate,
                   genre,
                   discMetadata);
-        return new AlbumDto(name.toString(), releaseDate, discMetadata.totalDisk(), genre);
+        return new AlbumDto(name, releaseDate, discMetadata.totalDisk(), genre);
     }
 
     private ArtistDto getArtistDto(Tag tag) {
-        var name = tag.getFirstField(FieldKey.ARTIST);
+        var name = Optional.ofNullable(tag.getFirstField(FieldKey.ARTIST))
+                .map(TagField::toString)
+                .map(MetadataParserService::removeZeroBit)
+                .map(this::extractMetadataText)
+                .orElse(null);
         if (Objects.isNull(name)) {
             return null;
         }
 
         log.debug("\nTotal info about artist:\nName - {}", name);
-        return new ArtistDto(name.toString());
+        return new ArtistDto(name);
     }
 
     private SongDto getSongDto(Tag tag, AudioHeader header, ArtistDto artist, AlbumDto album) {
         var name = Optional.ofNullable(tag.getFirstField(FieldKey.TITLE))
                 .map(TagField::toString)
+                .map(MetadataParserService::removeZeroBit)
+                .map(this::extractMetadataText)
                 .orElseThrow(() -> new AbsentImportantMetadataException("The track title must be specified"));
         var duration = header.getTrackLength();
         var trackNumberAlbum = Optional.ofNullable(tag.getFirst(FieldKey.TRACK))
@@ -111,11 +125,29 @@ public class MetadataParserService {
         return new SongDto(name, discMetadata.currentDisk(), duration, trackNumberAlbum, artist, album);
     }
 
+    private static String removeZeroBit(String s) {
+        return s.replaceAll("\\x00", "");
+    }
+
+    private String extractMetadataText(String s) {
+        if (s.startsWith("Text=")) {
+            var textMatcher = metadataPattern.matcher(s);
+            if (textMatcher.find()) {
+                return s.substring(textMatcher.start(), textMatcher.end());
+            }
+            throw new AbsentImportantMetadataException("The track title must be specified");
+        }
+        return s;
+    }
+
     private DiscMetadata getDiskMetadata(String rawData) {
         if (rawData.isBlank()) {
             return null;
+        } else if (rawData.contains("/") || rawData.contains(":")) {
+            var separatedStrings = rawData.split("[/:]");
+            return new DiscMetadata(Short.parseShort(separatedStrings[0]), Short.parseShort(separatedStrings[1]));
+        } else {
+            return new DiscMetadata(Short.parseShort(rawData), Short.parseShort(rawData));
         }
-        var separatedStrings = rawData.split("/");
-        return new DiscMetadata(Short.parseShort(separatedStrings[0]), Short.parseShort(separatedStrings[1]));
     }
 }
