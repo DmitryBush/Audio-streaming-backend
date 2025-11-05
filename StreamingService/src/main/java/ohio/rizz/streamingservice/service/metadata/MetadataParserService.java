@@ -7,6 +7,7 @@ import ohio.rizz.streamingservice.dto.ArtistDto;
 import ohio.rizz.streamingservice.dto.GenreDto;
 import ohio.rizz.streamingservice.dto.SongDto;
 import ohio.rizz.streamingservice.service.metadata.exception.AbsentImportantMetadataException;
+import ohio.rizz.streamingservice.validation.FileNameValidator;
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.audio.AudioHeader;
@@ -35,9 +36,14 @@ public class MetadataParserService {
     public SongDto extractMetadataFromFile(File file) {
         AudioFileMetadata metadata = readAudioFileMetadata(file);
 
-        var album = getAlbumDto(metadata.tag());
-        var artist = getArtistDto(metadata.tag());
-        return getSongDto(metadata.tag(), metadata.header(), artist, album);
+        try {
+            var album = getAlbumDto(metadata.tag());
+            var artist = getArtistDto(metadata.tag());
+            return getSongDto(metadata.tag(), metadata.header(), artist, album);
+        } catch (AbsentImportantMetadataException e) {
+            return new SongDto(file.getName(), null, metadata.header().getTrackLength(),
+                               null, null, null);
+        }
     }
 
     private AudioFileMetadata readAudioFileMetadata(File file) {
