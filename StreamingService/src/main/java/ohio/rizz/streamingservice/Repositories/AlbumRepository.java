@@ -6,9 +6,11 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface AlbumRepository extends JpaRepository<Album, Long> {
+    Optional<Album> findByName(String name);
     List<Album> findByArtistId(Long artistId);
     List<Album> findByReleaseDateAfter(LocalDate date);
     List<Album> findByGenreId(Short genreId);

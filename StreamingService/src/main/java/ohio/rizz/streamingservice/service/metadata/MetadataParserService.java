@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDate;
 import java.time.Year;
 import java.util.Objects;
 import java.util.Optional;
@@ -74,7 +75,8 @@ public class MetadataParserService {
                 .map(TagField::toString)
                 .map(MetadataParserService::removeZeroBit)
                 .map(this::extractMetadataText)
-                .map(Year::parse)
+                .map(year -> String.format("%s-01-01", year))
+                .map(LocalDate::parse)
                 .orElse(null);
         var genre = Optional.ofNullable(tag.getFirstField(FieldKey.GENRE))
                 .map(TagField::toString)

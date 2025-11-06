@@ -5,6 +5,7 @@ import lombok.SneakyThrows;
 import ohio.rizz.streamingservice.dto.SongDto;
 import ohio.rizz.streamingservice.service.filesystem.FilesystemService;
 import ohio.rizz.streamingservice.service.metadata.MetadataParserService;
+import ohio.rizz.streamingservice.service.metadata.SongService;
 import ohio.rizz.streamingservice.service.type.ContentTypeService;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;

@@ -28,6 +28,9 @@ public class Song {
     @Column(name = "file_url", length = 255, nullable = false)
     private String fileUrl;
 
+    @Column(name = "disc_number")
+    private Short discNumber;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "f_key_artist_id")
     private Artist artist;
