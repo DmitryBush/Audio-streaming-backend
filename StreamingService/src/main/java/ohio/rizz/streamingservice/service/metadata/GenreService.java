@@ -1,6 +1,7 @@
 package ohio.rizz.streamingservice.service.metadata;
 
 import lombok.RequiredArgsConstructor;
+import ohio.rizz.streamingservice.Entities.Genre;
 import ohio.rizz.streamingservice.Repositories.GenreRepository;
 import ohio.rizz.streamingservice.dto.GenreDto;
 import ohio.rizz.streamingservice.dto.GenreReadDto;
@@ -27,5 +28,9 @@ public class GenreService {
                         .map(genreRepository::save)
                         .map(genreReadMapper::mapToGenreReadDto)
                         .orElseThrow());
+    }
+
+    public Genre getReferenceById(Short id) {
+        return genreRepository.getReferenceById(id);
     }
 }

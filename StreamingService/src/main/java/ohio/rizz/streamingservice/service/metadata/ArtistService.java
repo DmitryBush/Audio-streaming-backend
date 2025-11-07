@@ -1,6 +1,7 @@
 package ohio.rizz.streamingservice.service.metadata;
 
 import lombok.RequiredArgsConstructor;
+import ohio.rizz.streamingservice.Entities.Artist;
 import ohio.rizz.streamingservice.Repositories.ArtistRepository;
 import ohio.rizz.streamingservice.dto.ArtistDto;
 import ohio.rizz.streamingservice.dto.ArtistReadDto;
@@ -28,5 +29,9 @@ public class ArtistService {
                         .map(artistRepository::save)
                         .map(artistReadMapper::mapToArtistReadMapper)
                         .orElseThrow());
+    }
+
+    public Artist getReferenceById(Long id) {
+        return artistRepository.getReferenceById(id);
     }
 }
