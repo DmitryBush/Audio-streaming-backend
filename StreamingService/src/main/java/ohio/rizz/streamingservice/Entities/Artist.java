@@ -18,7 +18,7 @@ public class Artist {
     @Column(name = "artist_id")
     private Long id;
 
-    @Column(name = "name", length = 32, nullable = false, unique = true)
+    @Column(name = "name", length = 128, nullable = false, unique = true)
     private String name;
 
     @Column(name = "biography", length = 255)

@@ -20,7 +20,7 @@ public class Album {
     @Column(name = "album_id")
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 32)
+    @Column(nullable = false, unique = true, length = 128)
     private String name;
 
     @Column(name = "release_date")
