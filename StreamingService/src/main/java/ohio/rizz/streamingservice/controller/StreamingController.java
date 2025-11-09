@@ -44,6 +44,13 @@ public class StreamingController {
         }
     }
 
+    @GetMapping("/songs-list")
+    public String songsPage(Model model) {
+        List<Song> songs = songService.getAllSongs();
+        model.addAttribute("songs", songs);
+        return "songs";
+    }
+
     @GetMapping("/songs")
     @ResponseBody
     public ResponseEntity<List<Song>> listSongs() {
@@ -53,12 +60,5 @@ public class StreamingController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
-    }
-
-    @GetMapping("/songs-page")
-    public String songsPage(Model model) {
-        List<Song> songs = songService.getAllSongs();
-        model.addAttribute("songs", songs);
-        return "songs";
     }
 }
