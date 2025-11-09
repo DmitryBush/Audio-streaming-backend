@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Музыкальный стриминговый сервис</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+
+        .song-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .song-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+            transition: all 0.3s ease;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        .song-item:hover {
+            background-color: #f8f9fa;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .song-info {
+            flex-grow: 1;
+        }
+
+        .song-title {
+            font-weight: bold;
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .song-artist {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 3px;
+        }
+
+        .song-album {
+            color: #888;
+            font-size: 12px;
+            font-style: italic;
+        }
+
+        .song-duration {
+            color: #999;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .play-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            min-width: 120px;
+        }
+
+        .play-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .play-button.playing {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .currently-playing {
+            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+            border-left: 5px solid #667eea;
+        }
+
+        .audio-player {
+            width: 100%;
+            margin-top: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .loading {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+        }
+
+        .error {
+            color: #dc3545;
+            text-align: center;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>🎵 Музыкальная библиотека</h1>
+
+    <div id="loadingMessage" class="loading">Загрузка песен...</div>
+    <div id="errorMessage" class="error" style="display: none;"></div>
+
+    <ul class="song-list" id="songList" style="display: none;">
+        <!-- Список песен будет загружен здесь -->
+    </ul>
+</div>
+
+<script>
+    // Глобальные переменные для управления воспроизведением
+    let currentAudio = null;
+    let currentButton = null;
+    let currentSongId = null;
+
+    // Загрузка списка песен при загрузке страницы
+    document.addEventListener('DOMContentLoaded', function() {
+        loadSongs();
+    });
+
+    async function loadSongs() {
+        try {
+            const response = await fetch('/api/v1/audio/songs');
+
+            if (!response.ok) {
+                throw new Error('Ошибка загрузки данных');
+            }
+
+            const songs = await response.json();
+
+            const songList = document.getElementById('songList');
+            const loadingMessage = document.getElementById('loadingMessage');
+            const errorMessage = document.getElementById('errorMessage');
+
+            // Скрываем сообщение о загрузке и ошибки
+            loadingMessage.style.display = 'none';
+            errorMessage.style.display = 'none';
+
+            // Показываем список песен
+            songList.style.display = 'block';
+            songList.innerHTML = '';
+
+            songs.forEach(song => {
+                const songItem = document.createElement('li');
+                songItem.className = 'song-item';
+                songItem.id = `song-${song.id}`;
+
+                songItem.innerHTML = `
+                        <div class="song-info">
+                            <div class="song-title">${escapeHtml(song.title)}</div>
+                            <div class="song-artist">🎤 ${escapeHtml(song.artist)}</div>
+                            ${song.album ? `<div class="song-album">💿 ${escapeHtml(song.album)}</div>` : ''}
+                            ${song.duration ? `<div class="song-duration">⏱ ${song.duration}</div>` : ''}
+                        </div>
+                        <button class="play-button" onclick="togglePlay(${song.id}, this)">
+                            ▶ Воспроизвести
+                        </button>
+                        <audio class="audio-player" id="audio-${song.id}" controls style="display: none;">
+                            <source src="${song.fileUrl}" type="audio/mpeg">
+                            Ваш браузер не поддерживает аудио элементы.
+                        </audio>
+                    `;
+
+                songList.appendChild(songItem);
+            });
+        } catch (error) {
+            console.error('Ошибка загрузки песен:', error);
+            showError('Не удалось загрузить список песен. Пожалуйста, попробуйте позже.');
+        }
+    }
+
+    function togglePlay(songId, button) {
+        const audio = document.getElementById(`audio-${songId}`);
+        const songItem = document.getElementById(`song-${songId}`);
+
+        // Если уже воспроизводится эта же песня
+        if (currentSongId === songId && !audio.paused) {
+            audio.pause();
+            button.textContent = '▶ Воспроизвести';
+            button.classList.remove('playing');
+            songItem.classList.remove('currently-playing');
+            audio.style.display = 'none';
+            currentAudio = null;
+            currentButton = null;
+            currentSongId = null;
+            return;
+        }
+
+        // Останавливаем текущее воспроизведение
+        if (currentAudio && currentAudio !== audio) {
+            currentAudio.pause();
+            currentAudio.currentTime = 0;
+            currentAudio.style.display = 'none';
+            if (currentButton) {
+                currentButton.textContent = '▶ Воспроизвести';
+                currentButton.classList.remove('playing');
+                document.getElementById(`song-${currentSongId}`).classList.remove('currently-playing');
+            }
+        }
+
+        // Начинаем воспроизведение
+        audio.style.display = 'block';
+        audio.play().catch(error => {
+            console.error('Ошибка воспроизведения:', error);
+            showError('Ошибка воспроизведения аудио. Проверьте ссылку на файл.');
+            audio.style.display = 'none';
+        });
+
+        button.textContent = '⏸ Пауза';
+        button.classList.add('playing');
+        songItem.classList.add('currently-playing');
+
+        currentAudio = audio;
+        currentButton = button;
+        currentSongId = songId;
+
+        // Событие окончания воспроизведения
+        audio.onended = function() {
+            button.textContent = '▶ Воспроизвести';
+            button.classList.remove('playing');
+            songItem.classList.remove('currently-playing');
+            audio.style.display = 'none';
+            currentAudio = null;
+            currentButton = null;
+            currentSongId = null;
+        };
+
+        // Обработка ошибок воспроизведения
+        audio.onerror = function() {
+            showError('Ошибка загрузки аудиофайла');
+            audio.style.display = 'none';
+            button.textContent = '▶ Воспроизвести';
+            button.classList.remove('playing');
+            songItem.classList.remove('currently-playing');
+        };
+    }
+
+    function showError(message) {
+        const errorMessage = document.getElementById('errorMessage');
+        const loadingMessage = document.getElementById('loadingMessage');
+        const songList = document.getElementById('songList');
+
+        loadingMessage.style.display = 'none';
+        songList.style.display = 'none';
+        errorMessage.style.display = 'block';
+        errorMessage.textContent = message;
+    }
+
+    // Функция для экранирования HTML
+    function escapeHtml(unsafe) {
+        return unsafe
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+</script>
+</body>
+</html>
