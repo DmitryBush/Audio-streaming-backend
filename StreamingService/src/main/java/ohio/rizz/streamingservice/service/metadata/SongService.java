@@ -8,8 +8,11 @@ import ohio.rizz.streamingservice.dto.SongDto;
 import ohio.rizz.streamingservice.dto.SongReadDto;
 import ohio.rizz.streamingservice.service.metadata.mapper.SongCreateMapper;
 import ohio.rizz.streamingservice.service.metadata.mapper.SongReadMapper;
+import ohio.rizz.streamingservice.service.storage.StorageService;
+import ohio.rizz.streamingservice.service.type.ContentTypeService;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
 import java.util.Optional;
 
 @Service
@@ -20,14 +23,15 @@ public class SongService {
     private final SongCreateMapper songCreateMapper;
     private final SongReadMapper songReadMapper;
 
-    public SongReadDto createSong(SongDto songDto, Artist artist, Album album) {
+    public SongReadDto createSong(SongDto songDto, Album album, String objectReference) {
         return songRepository.findByName(songDto.name())
                 .map(songReadMapper::mapToSongReadDto)
                 .orElseGet(() -> Optional.of(songDto)
                         .map(songCreateMapper::mapToSong)
                         .map(song -> {
-                            song.setArtist(artist);
+                            song.setArtist(album.getArtist());
                             song.setAlbum(album);
+                            song.setFileUrl(objectReference);
                             return song;
                         })
                         .map(songRepository::save)

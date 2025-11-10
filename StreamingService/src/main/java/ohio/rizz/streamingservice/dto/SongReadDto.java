@@ -1,6 +1,7 @@
 package ohio.rizz.streamingservice.dto;
 
-public record SongReadDto(String name,
+public record SongReadDto(Long id,
+                          String name,
                           Short discNumber,
                           Integer duration,
                           Short trackNumberAlbum,
