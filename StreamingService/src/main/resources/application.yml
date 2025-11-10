@@ -20,3 +20,8 @@ logging:
     ohio:
       rizz:
         streamingservice: DEBUG
+
+storage-service:
+  endpoint: https://127.0.0.1:9000
+  access-key: minioadmin
+  secret-key: minioadmin
