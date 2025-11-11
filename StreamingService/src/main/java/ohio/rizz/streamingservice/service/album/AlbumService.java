@@ -62,7 +62,7 @@ public class AlbumService {
 
     public Resource getAlbumArtwork(Long id) {
         return albumRepository.findById(id)
-                .map(album -> storageService.getResource("art", album.getCoverArtUrl()))
+                .map(album -> storageService.loadResource("art", album.getCoverArtUrl()))
                 .orElseThrow(NoSuchElementException::new);
     }
 }
