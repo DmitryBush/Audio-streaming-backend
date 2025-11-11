@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import ohio.rizz.streamingservice.dto.SongDto;
 import ohio.rizz.streamingservice.dto.SongReadDto;
 import ohio.rizz.streamingservice.service.album.AlbumService;
+import ohio.rizz.streamingservice.service.artist.ArtistService;
 import ohio.rizz.streamingservice.service.filesystem.FileSystemService;
 import ohio.rizz.streamingservice.service.metadata.*;
 import ohio.rizz.streamingservice.service.storage.StorageService;
