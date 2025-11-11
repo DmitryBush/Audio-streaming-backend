@@ -1,4 +1,4 @@
-package ohio.rizz.streamingservice.service.type.chain.internal;
+package ohio.rizz.streamingservice.service.type.chain.internal.audio;
 
 import ohio.rizz.streamingservice.service.type.chain.AbstractSuffixTypeGetterHandler;
 
