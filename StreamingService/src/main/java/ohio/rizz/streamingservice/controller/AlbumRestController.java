@@ -3,6 +3,7 @@ package ohio.rizz.streamingservice.controller;
 import lombok.RequiredArgsConstructor;
 import ohio.rizz.streamingservice.dto.AlbumReadDto;
 import ohio.rizz.streamingservice.service.album.AlbumService;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +25,15 @@ public class AlbumRestController {
     public ResponseEntity<AlbumReadDto> findAlbumById(@PathVariable Long id) {
         try {
             return new ResponseEntity<>(albumService.findAlbumById(id), HttpStatus.OK);
+        } catch (NoSuchElementException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @GetMapping(value = "/{id}/artwork", produces = {MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_JPEG_VALUE})
+    public ResponseEntity<Resource> getAlbumArtwork(@PathVariable Long id) {
+        try {
+            return new ResponseEntity<>(albumService.getAlbumArtwork(id), HttpStatus.OK);
         } catch (NoSuchElementException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }

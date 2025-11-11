@@ -9,6 +9,8 @@ import ohio.rizz.streamingservice.dto.AlbumDto;
 import ohio.rizz.streamingservice.dto.AlbumReadDto;
 import ohio.rizz.streamingservice.service.album.mapper.AlbumCreateMapper;
 import ohio.rizz.streamingservice.service.album.mapper.AlbumReadMapper;
+import ohio.rizz.streamingservice.service.storage.StorageService;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +26,8 @@ public class AlbumService {
 
     private final AlbumCreateMapper albumCreateMapper;
     private final AlbumReadMapper albumReadMapper;
+
+    private final StorageService storageService;
 
     public AlbumReadDto createAlbum(AlbumDto albumDto, Artist artist, Genre genre) {
         return albumRepository.findByName(albumDto.name())
@@ -54,5 +58,11 @@ public class AlbumService {
         return albumRepository.findByArtistId(artistId).stream()
                 .map(albumReadMapper::mapToAlbumReadDto)
                 .toList();
+    }
+
+    public Resource getAlbumArtwork(Long id) {
+        return albumRepository.findById(id)
+                .map(album -> storageService.getResource("art", album.getCoverArtUrl()))
+                .orElseThrow(NoSuchElementException::new);
     }
 }
