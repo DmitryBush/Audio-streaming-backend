@@ -16,6 +16,10 @@ public class ContentTypeService {
         return suffixTypeGetterHandler.handle(multipartFile.getContentType());
     }
 
+    public String getSuffixType(String contentType) {
+        return suffixTypeGetterHandler.handle(contentType);
+    }
+
     public String getSuffix(File file) {
         if (!file.isFile()) {
             throw new IllegalArgumentException("The argument isn't file");

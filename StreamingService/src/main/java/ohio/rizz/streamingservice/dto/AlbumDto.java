@@ -5,5 +5,6 @@ import java.time.LocalDate;
 public record AlbumDto(String name,
                        LocalDate releaseDate,
                        Short discCount,
-                       GenreDto genreDto) {
+                       GenreDto genreDto,
+                       ArtworkDto artworkDto) {
 }
