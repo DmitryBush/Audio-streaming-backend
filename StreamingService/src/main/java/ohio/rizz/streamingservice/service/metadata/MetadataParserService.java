@@ -7,6 +7,7 @@ import ohio.rizz.streamingservice.dto.ArtistDto;
 import ohio.rizz.streamingservice.dto.GenreDto;
 import ohio.rizz.streamingservice.dto.SongDto;
 import ohio.rizz.streamingservice.service.metadata.exception.AbsentImportantMetadataException;
+import ohio.rizz.streamingservice.validation.FileNameValidator;
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.audio.AudioHeader;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDate;
 import java.time.Year;
 import java.util.Objects;
 import java.util.Optional;
@@ -35,9 +37,14 @@ public class MetadataParserService {
     public SongDto extractMetadataFromFile(File file) {
         AudioFileMetadata metadata = readAudioFileMetadata(file);
 
-        var album = getAlbumDto(metadata.tag());
-        var artist = getArtistDto(metadata.tag());
-        return getSongDto(metadata.tag(), metadata.header(), artist, album);
+        try {
+            var album = getAlbumDto(metadata.tag());
+            var artist = getArtistDto(metadata.tag());
+            return getSongDto(metadata.tag(), metadata.header(), artist, album);
+        } catch (AbsentImportantMetadataException e) {
+            return new SongDto(file.getName(), null, metadata.header().getTrackLength(),
+                               null, null, null);
+        }
     }
 
     private AudioFileMetadata readAudioFileMetadata(File file) {
@@ -68,7 +75,8 @@ public class MetadataParserService {
                 .map(TagField::toString)
                 .map(MetadataParserService::removeZeroBit)
                 .map(this::extractMetadataText)
-                .map(Year::parse)
+                .map(year -> String.format("%s-01-01", year))
+                .map(LocalDate::parse)
                 .orElse(null);
         var genre = Optional.ofNullable(tag.getFirstField(FieldKey.GENRE))
                 .map(TagField::toString)

@@ -1,32 +1,57 @@
 package ohio.rizz.streamingservice.service;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import ohio.rizz.streamingservice.dto.SongDto;
-import ohio.rizz.streamingservice.service.metadata.MetadataParserService;
+import ohio.rizz.streamingservice.dto.SongReadDto;
+import ohio.rizz.streamingservice.service.filesystem.FilesystemService;
+import ohio.rizz.streamingservice.service.metadata.*;
+import ohio.rizz.streamingservice.service.storage.StorageService;
 import ohio.rizz.streamingservice.service.type.ContentTypeService;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class UploadService {
     private final MetadataParserService metadataParserService;
     private final ContentTypeService contentTypeService;
+    private final FilesystemService filesystemService;
+    private final StorageService storageService;
 
-    @SneakyThrows
-    public void uploadFile(MultipartFile multipartFile) {
+    private final ArtistService artistService;
+    private final GenreService genreService;
+    private final AlbumService albumService;
+    private final SongService songService;
+
+    @Transactional(rollbackOn = Exception.class)
+    public SongReadDto uploadFile(MultipartFile multipartFile) {
         final SongDto song;
         File tempFile = null;
         try {
-            tempFile = File.createTempFile("upload_audio_", contentTypeService.getSuffixType(multipartFile));
+            tempFile = filesystemService.createTemporalFile(multipartFile,
+                                                            contentTypeService.getSuffixType(multipartFile));
             multipartFile.transferTo(tempFile);
             song = metadataParserService.extractMetadataFromFile(tempFile);
-        } catch (IOException | IllegalStateException e) {
+
+            var artist = artistService.getReferenceById(artistService.createArtist(song.artistDto()).id());
+            var genre = genreService.getReferenceById(genreService.createGenre(song.albumDto().genreDto()).id());
+            var album = albumService.getReferenceById(albumService.createAlbum(song.albumDto(), artist, genre).id());
+            String songObjectReference = String.format("track/%s/audio%s",
+                                                   UUID.nameUUIDFromBytes(song.name().getBytes(StandardCharsets.UTF_8)),
+                                                   contentTypeService.getSuffixType(multipartFile));
+            var songReadDto = songService.createSong(song, album, songObjectReference);
+
+            storageService.saveFile(tempFile, "audio", songObjectReference);
+            return songReadDto;
+        } catch (IOException e) {
             throw new RuntimeException(e);
         } finally {
             Optional.ofNullable(tempFile).ifPresent(file -> {

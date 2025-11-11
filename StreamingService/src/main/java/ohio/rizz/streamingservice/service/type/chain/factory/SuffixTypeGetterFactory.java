@@ -12,6 +12,7 @@ class SuffixTypeGetterFactory {
                                                              new M4aSuffixTypeGetterHandler(),
                                                              new Mp4SuffixTypeGetterHandler(),
                                                              new OggSuffixTypeGetterHandler(),
+                                                             new AacSuffixTypeGetterHandler(),
                                                              new WavSuffixTypeGetterHandler(),
                                                              new WmaSuffixTypeGetterHandler());
     @Bean
