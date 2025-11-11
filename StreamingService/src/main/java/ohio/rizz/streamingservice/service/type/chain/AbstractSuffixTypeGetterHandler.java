@@ -3,15 +3,16 @@ package ohio.rizz.streamingservice.service.type.chain;
 import java.util.List;
 import java.util.Objects;
 
-abstract public class AbstractSuffixTypeGetterHandler {
+abstract public class AbstractSuffixTypeGetterHandler implements SuffixTypeGetterHandler {
     private final List<String> contentTypes;
-    protected AbstractSuffixTypeGetterHandler next;
+    protected SuffixTypeGetterHandler next;
 
     public AbstractSuffixTypeGetterHandler(List<String> contentTypes) {
         this.contentTypes = contentTypes;
     }
 
-    public AbstractSuffixTypeGetterHandler setNext(AbstractSuffixTypeGetterHandler nextHandler) {
+    @Override
+    public SuffixTypeGetterHandler setNext(SuffixTypeGetterHandler nextHandler) {
         this.next = nextHandler;
         return nextHandler;
     }

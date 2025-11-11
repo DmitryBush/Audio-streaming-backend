@@ -2,10 +2,9 @@ package ohio.rizz.streamingservice.service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import ohio.rizz.streamingservice.dto.SongDto;
 import ohio.rizz.streamingservice.dto.SongReadDto;
-import ohio.rizz.streamingservice.service.filesystem.FilesystemService;
+import ohio.rizz.streamingservice.service.filesystem.FileSystemService;
 import ohio.rizz.streamingservice.service.metadata.*;
 import ohio.rizz.streamingservice.service.storage.StorageService;
 import ohio.rizz.streamingservice.service.type.ContentTypeService;
@@ -23,7 +22,7 @@ import java.util.UUID;
 public class UploadService {
     private final MetadataParserService metadataParserService;
     private final ContentTypeService contentTypeService;
-    private final FilesystemService filesystemService;
+    private final FileSystemService fileSystemService;
     private final StorageService storageService;
 
     private final ArtistService artistService;
@@ -34,12 +33,15 @@ public class UploadService {
     @Transactional(rollbackOn = Exception.class)
     public SongReadDto uploadFile(MultipartFile multipartFile) {
         final SongDto song;
-        File tempFile = null;
+        File tmpSongFile = null;
         try {
-            tempFile = filesystemService.createTemporalFile(multipartFile,
-                                                            contentTypeService.getSuffixType(multipartFile));
-            multipartFile.transferTo(tempFile);
-            song = metadataParserService.extractMetadataFromFile(tempFile);
+            tmpSongFile = fileSystemService.createTemporalFile(multipartFile,
+                                                               contentTypeService.getSuffixType(multipartFile));
+            multipartFile.transferTo(tmpSongFile);
+            song = metadataParserService.extractMetadataFromFile(tmpSongFile);
+
+            File tmpArtFile = fileSystemService.createTemporalFile("art", song.albumDto().artworkDto().suffix());
+            fileSystemService.copyByteArrayToFile(tmpArtFile, song.albumDto().artworkDto().binaryArray());
 
             var artist = artistService.getReferenceById(artistService.createArtist(song.artistDto()).id());
             var genre = genreService.getReferenceById(genreService.createGenre(song.albumDto().genreDto()).id());
@@ -49,12 +51,13 @@ public class UploadService {
                                                    contentTypeService.getSuffixType(multipartFile));
             var songReadDto = songService.createSong(song, album, songObjectReference);
 
-            storageService.saveFile(tempFile, "audio", songObjectReference);
+            storageService.saveFile(tmpSongFile, "audio", songObjectReference);
+            storageService.saveFile(tmpArtFile, "art", song.albumDto().artworkDto().objectReference());
             return songReadDto;
         } catch (IOException e) {
             throw new RuntimeException(e);
         } finally {
-            Optional.ofNullable(tempFile).ifPresent(file -> {
+            Optional.ofNullable(tmpSongFile).ifPresent(file -> {
                 if (!file.delete()) {
                     throw new RuntimeException("The temporary file was not deleted due to an unknown error");
                 }

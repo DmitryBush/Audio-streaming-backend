@@ -2,11 +2,9 @@ package ohio.rizz.streamingservice.service.metadata;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import ohio.rizz.streamingservice.dto.AlbumDto;
-import ohio.rizz.streamingservice.dto.ArtistDto;
-import ohio.rizz.streamingservice.dto.GenreDto;
-import ohio.rizz.streamingservice.dto.SongDto;
+import ohio.rizz.streamingservice.dto.*;
 import ohio.rizz.streamingservice.service.metadata.exception.AbsentImportantMetadataException;
+import ohio.rizz.streamingservice.service.type.ContentTypeService;
 import ohio.rizz.streamingservice.validation.FileNameValidator;
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
@@ -18,14 +16,17 @@ import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.TagException;
 import org.jaudiotagger.tag.TagField;
+import org.jaudiotagger.tag.images.Artwork;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.Year;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.regex.Pattern;
 
 @Service
@@ -33,6 +34,8 @@ import java.util.regex.Pattern;
 @Slf4j
 public class MetadataParserService {
     private final Pattern metadataPattern = Pattern.compile("(?<=\")[^\"]+?(?=\")");
+
+    private final ContentTypeService contentTypeService;
 
     public SongDto extractMetadataFromFile(File file) {
         AudioFileMetadata metadata = readAudioFileMetadata(file);
@@ -71,6 +74,15 @@ public class MetadataParserService {
             return null;
         }
 
+        var artworkDto = Optional.ofNullable(tag.getFirstArtwork())
+                .map(artwork -> {
+                    String suffix = contentTypeService.getSuffixType(artwork.getMimeType());
+                    return new ArtworkDto(String.format("art/%s/art%s",
+                                                  UUID.nameUUIDFromBytes(name.getBytes(StandardCharsets.UTF_8)), suffix),
+                                          artwork.getBinaryData(), suffix);
+                })
+                .orElse(null);
+
         var releaseDate = Optional.ofNullable(tag.getFirstField(FieldKey.YEAR))
                 .map(TagField::toString)
                 .map(MetadataParserService::removeZeroBit)
@@ -95,7 +107,7 @@ public class MetadataParserService {
                   releaseDate,
                   genre,
                   discMetadata);
-        return new AlbumDto(name, releaseDate, discMetadata.totalDisk(), genre);
+        return new AlbumDto(name, releaseDate, discMetadata.totalDisk(), genre, artworkDto);
     }
 
     private ArtistDto getArtistDto(Tag tag) {
