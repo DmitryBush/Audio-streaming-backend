@@ -1,4 +1,4 @@
-package ohio.rizz.streamingservice.service.metadata.mapper;
+package ohio.rizz.streamingservice.service.artist.mapper;
 
 import ohio.rizz.streamingservice.Entities.Artist;
 import ohio.rizz.streamingservice.dto.ArtistDto;

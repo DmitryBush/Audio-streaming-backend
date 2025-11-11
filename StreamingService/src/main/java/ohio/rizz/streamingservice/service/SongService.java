@@ -1,18 +1,16 @@
-package ohio.rizz.streamingservice.service.metadata;
+package ohio.rizz.streamingservice.service;
 
 import lombok.RequiredArgsConstructor;
 import ohio.rizz.streamingservice.Entities.Album;
-import ohio.rizz.streamingservice.Entities.Artist;
+import ohio.rizz.streamingservice.Entities.Song;
 import ohio.rizz.streamingservice.Repositories.SongRepository;
 import ohio.rizz.streamingservice.dto.SongDto;
 import ohio.rizz.streamingservice.dto.SongReadDto;
 import ohio.rizz.streamingservice.service.metadata.mapper.SongCreateMapper;
 import ohio.rizz.streamingservice.service.metadata.mapper.SongReadMapper;
-import ohio.rizz.streamingservice.service.storage.StorageService;
-import ohio.rizz.streamingservice.service.type.ContentTypeService;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -37,5 +35,13 @@ public class SongService {
                         .map(songRepository::save)
                         .map(songReadMapper::mapToSongReadDto)
                         .orElseThrow());
+    }
+
+    public List<Song> getAllSongs() {
+        return songRepository.findAll();
+    }
+
+    public Song findById(long id) {
+        return songRepository.findById(id).orElseThrow(() -> new RuntimeException("Песня не найдена"));
     }
 }

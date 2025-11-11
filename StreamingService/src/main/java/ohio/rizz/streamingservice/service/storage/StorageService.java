@@ -4,6 +4,7 @@ import io.minio.*;
 import io.minio.errors.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
@@ -47,10 +48,10 @@ public class StorageService {
         }
     }
 
-    public Resource getResource(String bucket, String object) {
+    public Resource loadResource(String bucket, String object) {
         try(InputStream inputStream = minioClient.getObject(GetObjectArgs.builder()
                                                                     .bucket(bucket).object(object).build())) {
-            Resource resource = new InputStreamResource(inputStream);
+            Resource resource = new ByteArrayResource(inputStream.readAllBytes());
             if (resource.exists() && resource.isReadable()) {
                 return resource;
             }

@@ -1,14 +1,15 @@
-package ohio.rizz.streamingservice.service.metadata;
+package ohio.rizz.streamingservice.service.artist;
 
 import lombok.RequiredArgsConstructor;
 import ohio.rizz.streamingservice.Entities.Artist;
 import ohio.rizz.streamingservice.Repositories.ArtistRepository;
 import ohio.rizz.streamingservice.dto.ArtistDto;
 import ohio.rizz.streamingservice.dto.ArtistReadDto;
-import ohio.rizz.streamingservice.service.metadata.mapper.ArtistCreateMapper;
-import ohio.rizz.streamingservice.service.metadata.mapper.ArtistReadMapper;
+import ohio.rizz.streamingservice.service.artist.mapper.ArtistCreateMapper;
+import ohio.rizz.streamingservice.service.artist.mapper.ArtistReadMapper;
 import org.springframework.stereotype.Service;
 
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Service
@@ -33,5 +34,11 @@ public class ArtistService {
 
     public Artist getReferenceById(Long id) {
         return artistRepository.getReferenceById(id);
+    }
+
+    public ArtistReadDto findArtistById(Long id) {
+        return artistRepository.findById(id)
+                .map(artistReadMapper::mapToArtistReadMapper)
+                .orElseThrow(NoSuchElementException::new);
     }
 }
