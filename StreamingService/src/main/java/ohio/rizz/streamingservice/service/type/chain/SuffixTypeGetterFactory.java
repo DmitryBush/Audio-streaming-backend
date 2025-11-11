@@ -1,14 +1,14 @@
-package ohio.rizz.streamingservice.service.type.chain.factory;
+package ohio.rizz.streamingservice.service.type.chain;
 
-import ohio.rizz.streamingservice.service.type.chain.*;
+import ohio.rizz.streamingservice.service.type.chain.internal.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 @Component
-class SuffixTypeGetterFactory {
-    List<AbstractSuffixTypeGetterHandler> handlers = List.of(new MpegSuffixTypeGetterHandler(),
+public class SuffixTypeGetterFactory {
+    List<SuffixTypeGetterHandler> handlers = List.of(new MpegSuffixTypeGetterHandler(),
                                                              new M4aSuffixTypeGetterHandler(),
                                                              new Mp4SuffixTypeGetterHandler(),
                                                              new OggSuffixTypeGetterHandler(),
@@ -16,9 +16,9 @@ class SuffixTypeGetterFactory {
                                                              new WavSuffixTypeGetterHandler(),
                                                              new WmaSuffixTypeGetterHandler());
     @Bean
-    public AbstractSuffixTypeGetterHandler getSuffixTypeChain() {
-        AbstractSuffixTypeGetterHandler chainBeginning = new FlacSuffixTypeGetterHandler();
-        AbstractSuffixTypeGetterHandler tmpHandler = chainBeginning;
+    public SuffixTypeGetterHandler getSuffixTypeChain() {
+        SuffixTypeGetterHandler chainBeginning = new FlacSuffixTypeGetterHandler();
+        SuffixTypeGetterHandler tmpHandler = chainBeginning;
         for (var handler : handlers) {
             tmpHandler = tmpHandler.setNext(handler);
         }

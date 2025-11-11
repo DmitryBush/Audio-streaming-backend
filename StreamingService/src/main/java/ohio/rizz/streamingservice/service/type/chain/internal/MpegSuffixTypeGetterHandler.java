@@ -1,8 +1,10 @@
-package ohio.rizz.streamingservice.service.type.chain;
+package ohio.rizz.streamingservice.service.type.chain.internal;
+
+import ohio.rizz.streamingservice.service.type.chain.AbstractSuffixTypeGetterHandler;
 
 import java.util.Collections;
 
-public class MpegSuffixTypeGetterHandler extends AbstractSuffixTypeGetterHandler{
+public class MpegSuffixTypeGetterHandler extends AbstractSuffixTypeGetterHandler {
     public MpegSuffixTypeGetterHandler() {
         super(Collections.singletonList("audio/mpeg"));
     }
