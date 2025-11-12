@@ -1,4 +1,4 @@
-package ohio.rizz.streamingservice.service.metadata.mapper;
+package ohio.rizz.streamingservice.service.genre.mapper;
 
 import ohio.rizz.streamingservice.Entities.Genre;
 import ohio.rizz.streamingservice.dto.GenreDto;

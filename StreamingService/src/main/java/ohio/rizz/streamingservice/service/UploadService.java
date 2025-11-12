@@ -7,6 +7,7 @@ import ohio.rizz.streamingservice.dto.SongReadDto;
 import ohio.rizz.streamingservice.service.album.AlbumService;
 import ohio.rizz.streamingservice.service.artist.ArtistService;
 import ohio.rizz.streamingservice.service.filesystem.FileSystemService;
+import ohio.rizz.streamingservice.service.genre.GenreService;
 import ohio.rizz.streamingservice.service.metadata.*;
 import ohio.rizz.streamingservice.service.storage.StorageService;
 import ohio.rizz.streamingservice.service.type.ContentTypeService;

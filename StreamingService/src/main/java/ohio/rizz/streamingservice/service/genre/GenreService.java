@@ -1,14 +1,15 @@
-package ohio.rizz.streamingservice.service.metadata;
+package ohio.rizz.streamingservice.service.genre;
 
 import lombok.RequiredArgsConstructor;
 import ohio.rizz.streamingservice.Entities.Genre;
 import ohio.rizz.streamingservice.Repositories.GenreRepository;
 import ohio.rizz.streamingservice.dto.GenreDto;
 import ohio.rizz.streamingservice.dto.GenreReadDto;
-import ohio.rizz.streamingservice.service.metadata.mapper.GenreCreateMapper;
-import ohio.rizz.streamingservice.service.metadata.mapper.GenreReadMapper;
+import ohio.rizz.streamingservice.service.genre.mapper.GenreCreateMapper;
+import ohio.rizz.streamingservice.service.genre.mapper.GenreReadMapper;
 import org.springframework.stereotype.Service;
 
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Service
@@ -32,5 +33,11 @@ public class GenreService {
 
     public Genre getReferenceById(Short id) {
         return genreRepository.getReferenceById(id);
+    }
+
+    public GenreReadDto getGenreById(Short id) {
+        return genreRepository.findById(id)
+                .map(genreReadMapper::mapToGenreReadDto)
+                .orElseThrow(NoSuchElementException::new);
     }
 }
