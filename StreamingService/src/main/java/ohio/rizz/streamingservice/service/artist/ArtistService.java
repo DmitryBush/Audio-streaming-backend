@@ -7,6 +7,8 @@ import ohio.rizz.streamingservice.dto.ArtistDto;
 import ohio.rizz.streamingservice.dto.ArtistReadDto;
 import ohio.rizz.streamingservice.service.artist.mapper.ArtistCreateMapper;
 import ohio.rizz.streamingservice.service.artist.mapper.ArtistReadMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.NoSuchElementException;
@@ -40,5 +42,10 @@ public class ArtistService {
         return artistRepository.findById(id)
                 .map(artistReadMapper::mapToArtistReadMapper)
                 .orElseThrow(NoSuchElementException::new);
+    }
+
+    public Page<ArtistReadDto> findAllArtists(Pageable pageable) {
+        return artistRepository.findAll(pageable)
+                .map(artistReadMapper::mapToArtistReadMapper);
     }
 }

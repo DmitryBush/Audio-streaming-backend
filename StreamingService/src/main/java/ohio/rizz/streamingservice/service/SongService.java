@@ -2,15 +2,17 @@ package ohio.rizz.streamingservice.service;
 
 import lombok.RequiredArgsConstructor;
 import ohio.rizz.streamingservice.Entities.Album;
-import ohio.rizz.streamingservice.Entities.Song;
 import ohio.rizz.streamingservice.Repositories.SongRepository;
 import ohio.rizz.streamingservice.dto.SongDto;
 import ohio.rizz.streamingservice.dto.SongReadDto;
 import ohio.rizz.streamingservice.service.metadata.mapper.SongCreateMapper;
 import ohio.rizz.streamingservice.service.metadata.mapper.SongReadMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Service
@@ -37,11 +39,14 @@ public class SongService {
                         .orElseThrow());
     }
 
-    public List<Song> getAllSongs() {
-        return songRepository.findAll();
+    public Page<SongReadDto> findAllSongs(Pageable pageable) {
+        return songRepository.findAll(pageable)
+                .map(songReadMapper::mapToSongReadDto);
     }
 
-    public Song findById(long id) {
-        return songRepository.findById(id).orElseThrow(() -> new RuntimeException("Песня не найдена"));
+    public SongReadDto findById(long id) {
+        return songRepository.findById(id)
+                .map(songReadMapper::mapToSongReadDto)
+                .orElseThrow(() -> new NoSuchElementException("Песня не найдена"));
     }
 }

@@ -4,6 +4,12 @@ import lombok.RequiredArgsConstructor;
 import ohio.rizz.streamingservice.dto.AlbumReadDto;
 import ohio.rizz.streamingservice.service.album.AlbumService;
 import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +27,8 @@ import java.util.NoSuchElementException;
 public class AlbumRestController {
     private final AlbumService albumService;
 
+    private final PagedResourcesAssembler<AlbumReadDto> assembler;
+
     @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AlbumReadDto> findAlbumById(@PathVariable Long id) {
         try {
@@ -37,5 +45,11 @@ public class AlbumRestController {
         } catch (NoSuchElementException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
+    }
+
+    @GetMapping
+    public ResponseEntity<PagedModel<EntityModel<AlbumReadDto>>> findAlbums(@PageableDefault(size = 15) Pageable pageable) {
+        var albums = assembler.toModel(albumService.findAllAlbums(pageable));
+        return ResponseEntity.ok(albums);
     }
 }

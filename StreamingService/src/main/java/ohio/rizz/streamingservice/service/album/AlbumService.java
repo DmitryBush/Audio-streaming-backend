@@ -11,6 +11,8 @@ import ohio.rizz.streamingservice.service.album.mapper.AlbumCreateMapper;
 import ohio.rizz.streamingservice.service.album.mapper.AlbumReadMapper;
 import ohio.rizz.streamingservice.service.storage.StorageService;
 import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -64,5 +66,10 @@ public class AlbumService {
         return albumRepository.findById(id)
                 .map(album -> storageService.loadResource("art", album.getCoverArtUrl()))
                 .orElseThrow(NoSuchElementException::new);
+    }
+
+    public Page<AlbumReadDto> findAllAlbums(Pageable pageable) {
+        return albumRepository.findAll(pageable)
+                .map(albumReadMapper::mapToAlbumReadDto);
     }
 }
