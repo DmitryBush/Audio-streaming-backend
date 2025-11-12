@@ -11,6 +11,7 @@ import ohio.rizz.streamingservice.service.metadata.mapper.SongReadMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Service
@@ -37,11 +38,15 @@ public class SongService {
                         .orElseThrow());
     }
 
-    public List<Song> getAllSongs() {
-        return songRepository.findAll();
+    public List<SongReadDto> getAllSongs() {
+        return songRepository.findAll().stream()
+                .map(songReadMapper::mapToSongReadDto)
+                .toList();
     }
 
-    public Song findById(long id) {
-        return songRepository.findById(id).orElseThrow(() -> new RuntimeException("Песня не найдена"));
+    public SongReadDto findById(long id) {
+        return songRepository.findById(id)
+                .map(songReadMapper::mapToSongReadDto)
+                .orElseThrow(() -> new NoSuchElementException("Песня не найдена"));
     }
 }
