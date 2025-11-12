@@ -1,23 +1,21 @@
 package ohio.rizz.streamingservice.controller;
 
 import lombok.RequiredArgsConstructor;
-import ohio.rizz.streamingservice.Entities.Song;
 import ohio.rizz.streamingservice.dto.SongReadDto;
 import ohio.rizz.streamingservice.service.SongService;
-import org.springframework.http.HttpHeaders;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.List;
 import java.util.NoSuchElementException;
 
 @Controller
@@ -25,6 +23,7 @@ import java.util.NoSuchElementException;
 @RequiredArgsConstructor
 public class StreamingController {
     private final SongService songService;
+    private final PagedResourcesAssembler<SongReadDto> assembler;
 
     @GetMapping("/stream/{songId}")
     public String streamAudio(@PathVariable Long songId) {
@@ -50,18 +49,18 @@ public class StreamingController {
     }
 
     @GetMapping("/songs-list")
-    public String songsPage(Model model) {
-        List<SongReadDto> songs = songService.getAllSongs();
+    public String songsPage(Model model, Pageable pageable) {
+        Page<SongReadDto> songs = songService.findAllSongs(pageable);
         model.addAttribute("songs", songs);
         return "songs";
     }
 
     @GetMapping("/songs")
     @ResponseBody
-    public ResponseEntity<List<SongReadDto>> listSongs() {
+    public ResponseEntity<PagedModel<EntityModel<SongReadDto>>> listSongs(@PageableDefault(size = 15) Pageable pageable) {
         try {
-            List<SongReadDto> songs = songService.getAllSongs();
-            return ResponseEntity.ok(songs);
+            Page<SongReadDto> songs = songService.findAllSongs(pageable);
+            return ResponseEntity.ok(assembler.toModel(songs));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }

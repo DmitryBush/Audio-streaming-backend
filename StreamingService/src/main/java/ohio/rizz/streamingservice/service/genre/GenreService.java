@@ -7,6 +7,8 @@ import ohio.rizz.streamingservice.dto.GenreDto;
 import ohio.rizz.streamingservice.dto.GenreReadDto;
 import ohio.rizz.streamingservice.service.genre.mapper.GenreCreateMapper;
 import ohio.rizz.streamingservice.service.genre.mapper.GenreReadMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.NoSuchElementException;
@@ -39,5 +41,10 @@ public class GenreService {
         return genreRepository.findById(id)
                 .map(genreReadMapper::mapToGenreReadDto)
                 .orElseThrow(NoSuchElementException::new);
+    }
+
+    public Page<GenreReadDto> findAllGenres(Pageable pageable) {
+        return genreRepository.findAll(pageable)
+                .map(genreReadMapper::mapToGenreReadDto);
     }
 }

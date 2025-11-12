@@ -2,12 +2,13 @@ package ohio.rizz.streamingservice.service;
 
 import lombok.RequiredArgsConstructor;
 import ohio.rizz.streamingservice.Entities.Album;
-import ohio.rizz.streamingservice.Entities.Song;
 import ohio.rizz.streamingservice.Repositories.SongRepository;
 import ohio.rizz.streamingservice.dto.SongDto;
 import ohio.rizz.streamingservice.dto.SongReadDto;
 import ohio.rizz.streamingservice.service.metadata.mapper.SongCreateMapper;
 import ohio.rizz.streamingservice.service.metadata.mapper.SongReadMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -38,10 +39,9 @@ public class SongService {
                         .orElseThrow());
     }
 
-    public List<SongReadDto> getAllSongs() {
-        return songRepository.findAll().stream()
-                .map(songReadMapper::mapToSongReadDto)
-                .toList();
+    public Page<SongReadDto> findAllSongs(Pageable pageable) {
+        return songRepository.findAll(pageable)
+                .map(songReadMapper::mapToSongReadDto);
     }
 
     public SongReadDto findById(long id) {
