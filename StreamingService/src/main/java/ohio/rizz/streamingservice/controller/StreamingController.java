@@ -3,19 +3,25 @@ package ohio.rizz.streamingservice.controller;
 import lombok.RequiredArgsConstructor;
 import ohio.rizz.streamingservice.dto.SongReadDto;
 import ohio.rizz.streamingservice.service.SongService;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.PagedModel;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.core.io.Resource;
 
+import java.io.File;
 import java.util.NoSuchElementException;
 
 @Controller
@@ -26,13 +32,24 @@ public class StreamingController {
     private final PagedResourcesAssembler<SongReadDto> assembler;
 
     @GetMapping("/stream/{songId}")
-    public String streamAudio(@PathVariable Long songId) {
-        try {
-            SongReadDto song = songService.findById(songId);
-            return "redirect:";
-        } catch (Exception e) {
-            return "redirect:/error";
+    public ResponseEntity<Resource> streamAudio(@PathVariable Long songId) {
+
+        // надо получить файл по id (ну либо оставить всегда говновоз, может юзерам понравится)
+        Resource resource = new ClassPathResource("govn.mp3");
+
+        if (!resource.exists()) {
+            return ResponseEntity.notFound().build();
         }
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.valueOf("audio/mpeg"));
+        headers.setCacheControl("no-cache, no-store, must-revalidate");
+        headers.setPragma("no-cache");
+        headers.setExpires(0);
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(resource);
     }
 
     @GetMapping("/song/{songId}")
