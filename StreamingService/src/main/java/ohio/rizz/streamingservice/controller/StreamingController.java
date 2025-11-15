@@ -33,12 +33,20 @@ public class StreamingController {
     private final SongService songService;
     private final PagedResourcesAssembler<SongReadDto> assembler;
 
+    private final int maxChunkSizeBytes = 1024 * 1024;
+
+    // Реализация стриминга на Range запросах
+    // Пример запроса диапазона от 0 до 999 байт
+    // GET http://localhost:8080/api/v1/audio/stream/1
+    // Headers:
+    // Range: bytes=0-999
     @GetMapping("/stream/{songId}")
     public ResponseEntity<ResourceRegion> streamAudio(
             @PathVariable Long songId,
             @RequestHeader HttpHeaders headers) {
 
         try {
+            // Тут нужно искать файл по id (ну либо оставить всегда говновоз, может юзерам понравится)
             Resource resource = new ClassPathResource("govn.mp3");
             long contentLength = resource.contentLength();
 
@@ -49,11 +57,11 @@ public class StreamingController {
             if (range != null) {
                 long start = range.getRangeStart(contentLength);
                 long end = range.getRangeEnd(contentLength);
-                long rangeLength = Math.min(1024 * 1024, end - start + 1); // Максимум 1MB за раз
+                long rangeLength = Math.min(maxChunkSizeBytes, end - start + 1);
                 region = new ResourceRegion(resource, start, rangeLength);
             } else {
                 // Если диапазон не указан, возвращаем первый чанк
-                long chunkSize = Math.min(1024 * 1024, contentLength);
+                long chunkSize = Math.min(maxChunkSizeBytes, contentLength);
                 region = new ResourceRegion(resource, 0, chunkSize);
             }
 
