@@ -1,291 +1,362 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Музыкальный стриминговый сервис</title>
+    <title>Advanced Audio Stream Player</title>
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
+        .player-container {
+            max-width: 600px;
+            margin: 20px auto;
             padding: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            background: #f9f9f9;
         }
-
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        .progress-container {
+            width: 100%;
+            height: 20px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            margin: 15px 0;
+            cursor: pointer;
+            position: relative;
         }
-
-        h1 {
-            color: #333;
-            text-align: center;
-            margin-bottom: 30px;
-            font-size: 2.5em;
+        .progress-bar {
+            height: 100%;
+            background: #4CAF50;
+            border-radius: 10px;
+            width: 0%;
+            transition: width 0.1s;
         }
-
-        .song-list {
-            list-style: none;
-            padding: 0;
+        .buffer-bar {
+            height: 100%;
+            background: #c8e6c9;
+            border-radius: 10px;
+            width: 0%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
         }
-
-        .song-item {
+        .time-display {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            padding: 20px;
-            border-bottom: 1px solid #eee;
-            transition: all 0.3s ease;
-            border-radius: 10px;
-            margin-bottom: 10px;
+            font-family: monospace;
+            margin: 5px 0;
         }
-
-        .song-item:hover {
-            background-color: #f8f9fa;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 15px 0;
         }
-
-        .song-info {
-            flex-grow: 1;
-        }
-
-        .song-title {
-            font-weight: bold;
-            font-size: 18px;
-            color: #333;
-            margin-bottom: 5px;
-        }
-
-        .song-artist {
-            color: #666;
-            font-size: 14px;
-            margin-bottom: 3px;
-        }
-
-        .song-album {
-            color: #888;
-            font-size: 12px;
-            font-style: italic;
-        }
-
-        .song-duration {
-            color: #999;
-            font-size: 12px;
-            margin-top: 5px;
-        }
-
-        .play-button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+        button {
+            padding: 8px 16px;
             border: none;
-            padding: 10px 20px;
-            border-radius: 25px;
+            border-radius: 5px;
             cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: bold;
-            min-width: 120px;
+            font-size: 14px;
         }
-
-        .play-button:hover {
-            transform: scale(1.05);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        .play-btn { background: #4CAF50; color: white; }
+        .pause-btn { background: #ff9800; color: white; }
+        .stop-btn { background: #f44336; color: white; }
+        .volume-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 10px 0;
         }
-
-        .play-button.playing {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        .speed-control {
+            margin: 10px 0;
         }
-
-        .currently-playing {
-            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
-            border-left: 5px solid #667eea;
-        }
-
-        .audio-player {
-            width: 100%;
-            margin-top: 15px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-
-        .loading {
+        .status {
             text-align: center;
-            color: #666;
+            margin: 10px 0;
             font-style: italic;
+            color: #666;
         }
-
-        .error {
-            color: #dc3545;
-            text-align: center;
-            padding: 20px;
+        .hidden {
+            display: none;
         }
     </style>
 </head>
 <body>
-<div class="container">
-    <h1>🎵 Музыкальная библиотека</h1>
+<div class="player-container">
+    <h3>Advanced Audio Stream Player</h3>
 
-    <div id="loadingMessage" class="loading">Загрузка песен...</div>
-    <div id="errorMessage" class="error" style="display: none;"></div>
+    <div class="progress-container" id="progressContainer">
+        <div class="buffer-bar" id="bufferBar"></div>
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
 
-    <ul class="song-list" id="songList" style="display: none;">
-        <!-- Список песен будет загружен здесь -->
-    </ul>
+    <div class="time-display">
+        <span id="currentTime">00:00</span>
+        <span id="totalTime">00:00</span>
+    </div>
+
+    <div class="controls">
+        <button class="play-btn" onclick="playPause()">Play</button>
+        <button class="pause-btn" onclick="pauseAudio()">Pause</button>
+        <button class="stop-btn" onclick="stopAudio()">Stop</button>
+        <button onclick="skipBackward()">-10s</button>
+        <button onclick="skipForward()">+10s</button>
+    </div>
+
+    <div class="volume-container">
+        <span>Volume:</span>
+        <input type="range" id="volumeSlider" min="0" max="100" value="100"
+               oninput="changeVolume(this.value)">
+        <span id="volumeValue">100%</span>
+    </div>
+
+    <div class="speed-control">
+        <label>Playback Speed:</label>
+        <select id="speedSelect" onchange="changeSpeed(this.value)">
+            <option value="0.5">0.5x</option>
+            <option value="0.75">0.75x</option>
+            <option value="1" selected>1x</option>
+            <option value="1.25">1.25x</option>
+            <option value="1.5">1.5x</option>
+            <option value="2">2x</option>
+        </select>
+    </div>
+
+    <div class="status" id="status">Ready to play</div>
+
+    <!-- Скрытый audio элемент для базового функционала -->
+    <audio id="audioElement" preload="none"></audio>
 </div>
 
 <script>
-    // Глобальные переменные для управления воспроизведением
-    let currentAudio = null;
-    let currentButton = null;
-    let currentSongId = null;
+    class AdvancedAudioPlayer {
+        constructor() {
+            this.audioElement = document.getElementById('audioElement');
+            this.baseUrl = 'http://localhost:8080/api/v1/audio';
+            this.currentSongId = null;
+            this.isPlaying = false;
 
-    // Загрузка списка песен при загрузке страницы
-    document.addEventListener('DOMContentLoaded', function() {
-        loadSongs();
+            // Элементы UI
+            this.progressBar = document.getElementById('progressBar');
+            this.bufferBar = document.getElementById('bufferBar');
+            this.progressContainer = document.getElementById('progressContainer');
+            this.currentTimeDisplay = document.getElementById('currentTime');
+            this.totalTimeDisplay = document.getElementById('totalTime');
+            this.statusElement = document.getElementById('status');
+            this.volumeSlider = document.getElementById('volumeSlider');
+            this.volumeValue = document.getElementById('volumeValue');
+
+            this.initializeEventListeners();
+        }
+
+        initializeEventListeners() {
+            // Прогресс воспроизведения
+            this.audioElement.addEventListener('timeupdate', () => this.updateProgress());
+
+            // Буферизация
+            this.audioElement.addEventListener('progress', () => this.updateBuffer());
+            this.audioElement.addEventListener('loadedmetadata', () => this.updateDuration());
+
+            // Состояния воспроизведения
+            this.audioElement.addEventListener('play', () => this.onPlay());
+            this.audioElement.addEventListener('pause', () => this.onPause());
+            this.audioElement.addEventListener('ended', () => this.onEnded());
+            this.audioElement.addEventListener('waiting', () => this.onWaiting());
+            this.audioElement.addEventListener('canplay', () => this.onCanPlay());
+            this.audioElement.addEventListener('error', (e) => this.onError(e));
+
+            // Обработка кликов по прогресс-бару
+            this.progressContainer.addEventListener('click', (e) => this.seek(e));
+        }
+
+        async loadSong(songId) {
+            this.currentSongId = songId;
+            const streamUrl = `${this.baseUrl}/stream/${songId}`;
+
+            this.audioElement.src = streamUrl;
+            this.updateStatus('Loading song...');
+
+            // Предзагрузка метаданных
+            try {
+                await new Promise((resolve, reject) => {
+                    this.audioElement.addEventListener('loadedmetadata', resolve, { once: true });
+                    this.audioElement.addEventListener('error', reject, { once: true });
+                });
+                this.updateStatus('Song loaded - Ready to play');
+            } catch (error) {
+                this.updateStatus('Error loading song: ' + error.message);
+            }
+        }
+
+        playPause() {
+            if (this.audioElement.paused) {
+                this.audioElement.play().catch(error => {
+                    this.updateStatus('Playback failed: ' + error.message);
+                });
+            } else {
+                this.audioElement.pause();
+            }
+        }
+
+        pauseAudio() {
+            this.audioElement.pause();
+        }
+
+        stopAudio() {
+            this.audioElement.pause();
+            this.audioElement.currentTime = 0;
+            this.updateProgress();
+            this.updateStatus('Stopped');
+        }
+
+        skipBackward() {
+            this.audioElement.currentTime = Math.max(0, this.audioElement.currentTime - 10);
+        }
+
+        skipForward() {
+            this.audioElement.currentTime = Math.min(
+                this.audioElement.duration,
+                this.audioElement.currentTime + 10
+            );
+        }
+
+        seek(event) {
+            const rect = this.progressContainer.getBoundingClientRect();
+            const percent = (event.clientX - rect.left) / rect.width;
+            const seekTime = percent * this.audioElement.duration;
+
+            this.audioElement.currentTime = seekTime;
+            this.updateStatus(`Seeked to ${this.formatTime(seekTime)}`);
+        }
+
+        changeVolume(volume) {
+            this.audioElement.volume = volume / 100;
+            this.volumeValue.textContent = `${volume}%`;
+        }
+
+        changeSpeed(speed) {
+            this.audioElement.playbackRate = parseFloat(speed);
+            this.updateStatus(`Playback speed: ${speed}x`);
+        }
+
+        updateProgress() {
+            if (this.audioElement.duration) {
+                const percent = (this.audioElement.currentTime / this.audioElement.duration) * 100;
+                this.progressBar.style.width = percent + '%';
+                this.currentTimeDisplay.textContent = this.formatTime(this.audioElement.currentTime);
+            }
+        }
+
+        updateBuffer() {
+            if (this.audioElement.buffered.length > 0) {
+                const bufferedEnd = this.audioElement.buffered.end(this.audioElement.buffered.length - 1);
+                const duration = this.audioElement.duration;
+
+                if (duration > 0) {
+                    const bufferPercent = (bufferedEnd / duration) * 100;
+                    this.bufferBar.style.width = bufferPercent + '%';
+                }
+            }
+        }
+
+        updateDuration() {
+            if (this.audioElement.duration) {
+                this.totalTimeDisplay.textContent = this.formatTime(this.audioElement.duration);
+            }
+        }
+
+        // Обработчики событий состояния
+        onPlay() {
+            this.isPlaying = true;
+            this.updateStatus('Playing');
+        }
+
+        onPause() {
+            this.isPlaying = false;
+            this.updateStatus('Paused');
+        }
+
+        onEnded() {
+            this.isPlaying = false;
+            this.updateStatus('Playback completed');
+        }
+
+        onWaiting() {
+            this.updateStatus('Buffering...');
+        }
+
+        onCanPlay() {
+            this.updateStatus('Ready to play');
+        }
+
+        onError(event) {
+            const error = this.audioElement.error;
+            let message = 'Unknown error';
+
+            switch(error.code) {
+                case error.MEDIA_ERR_ABORTED:
+                    message = 'Playback was aborted';
+                    break;
+                case error.MEDIA_ERR_NETWORK:
+                    message = 'Network error occurred';
+                    break;
+                case error.MEDIA_ERR_DECODE:
+                    message = 'Audio decoding error';
+                    break;
+                case error.MEDIA_ERR_SRC_NOT_SUPPORTED:
+                    message = 'Audio format not supported';
+                    break;
+            }
+
+            this.updateStatus('Error: ' + message);
+        }
+
+        updateStatus(message) {
+            this.statusElement.textContent = message;
+            console.log('Player status:', message);
+        }
+
+        formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+    }
+
+    // Инициализация плеера
+    const audioPlayer = new AdvancedAudioPlayer();
+
+    // Глобальные функции для кнопок
+    function playPause() {
+        audioPlayer.playPause();
+    }
+
+    function pauseAudio() {
+        audioPlayer.pauseAudio();
+    }
+
+    function stopAudio() {
+        audioPlayer.stopAudio();
+    }
+
+    function skipBackward() {
+        audioPlayer.skipBackward();
+    }
+
+    function skipForward() {
+        audioPlayer.skipForward();
+    }
+
+    function changeVolume(value) {
+        audioPlayer.changeVolume(value);
+    }
+
+    function changeSpeed(value) {
+        audioPlayer.changeSpeed(value);
+    }
+
+    // Загрузка песни по умолчанию при загрузке страницы
+    window.addEventListener('load', () => {
+        audioPlayer.loadSong(1); // Загружаем песню с ID 1
     });
-
-    async function loadSongs() {
-        try {
-            const response = await fetch('/api/v1/audio/songs');
-
-            if (!response.ok) {
-                throw new Error('Ошибка загрузки данных');
-            }
-
-            const songs = await response.json();
-
-            const songList = document.getElementById('songList');
-            const loadingMessage = document.getElementById('loadingMessage');
-            const errorMessage = document.getElementById('errorMessage');
-
-            // Скрываем сообщение о загрузке и ошибки
-            loadingMessage.style.display = 'none';
-            errorMessage.style.display = 'none';
-
-            // Показываем список песен
-            songList.style.display = 'block';
-            songList.innerHTML = '';
-
-            songs.forEach(song => {
-                const songItem = document.createElement('li');
-                songItem.className = 'song-item';
-                songItem.id = `song-${song.id}`;
-
-                songItem.innerHTML = `
-                        <div class="song-info">
-                            <div class="song-title">${escapeHtml(song.title)}</div>
-                            <div class="song-artist">🎤 ${escapeHtml(song.artist)}</div>
-                            ${song.album ? `<div class="song-album">💿 ${escapeHtml(song.album)}</div>` : ''}
-                            ${song.duration ? `<div class="song-duration">⏱ ${song.duration}</div>` : ''}
-                        </div>
-                        <button class="play-button" onclick="togglePlay(${song.id}, this)">
-                            ▶ Воспроизвести
-                        </button>
-                        <audio class="audio-player" id="audio-${song.id}" controls style="display: none;">
-                            <source src="${song.fileUrl}" type="audio/mpeg">
-                            Ваш браузер не поддерживает аудио элементы.
-                        </audio>
-                    `;
-
-                songList.appendChild(songItem);
-            });
-        } catch (error) {
-            console.error('Ошибка загрузки песен:', error);
-            showError('Не удалось загрузить список песен. Пожалуйста, попробуйте позже.');
-        }
-    }
-
-    function togglePlay(songId, button) {
-        const audio = document.getElementById(`audio-${songId}`);
-        const songItem = document.getElementById(`song-${songId}`);
-
-        // Если уже воспроизводится эта же песня
-        if (currentSongId === songId && !audio.paused) {
-            audio.pause();
-            button.textContent = '▶ Воспроизвести';
-            button.classList.remove('playing');
-            songItem.classList.remove('currently-playing');
-            audio.style.display = 'none';
-            currentAudio = null;
-            currentButton = null;
-            currentSongId = null;
-            return;
-        }
-
-        // Останавливаем текущее воспроизведение
-        if (currentAudio && currentAudio !== audio) {
-            currentAudio.pause();
-            currentAudio.currentTime = 0;
-            currentAudio.style.display = 'none';
-            if (currentButton) {
-                currentButton.textContent = '▶ Воспроизвести';
-                currentButton.classList.remove('playing');
-                document.getElementById(`song-${currentSongId}`).classList.remove('currently-playing');
-            }
-        }
-
-        // Начинаем воспроизведение
-        audio.style.display = 'block';
-        audio.play().catch(error => {
-            console.error('Ошибка воспроизведения:', error);
-            showError('Ошибка воспроизведения аудио. Проверьте ссылку на файл.');
-            audio.style.display = 'none';
-        });
-
-        button.textContent = '⏸ Пауза';
-        button.classList.add('playing');
-        songItem.classList.add('currently-playing');
-
-        currentAudio = audio;
-        currentButton = button;
-        currentSongId = songId;
-
-        // Событие окончания воспроизведения
-        audio.onended = function() {
-            button.textContent = '▶ Воспроизвести';
-            button.classList.remove('playing');
-            songItem.classList.remove('currently-playing');
-            audio.style.display = 'none';
-            currentAudio = null;
-            currentButton = null;
-            currentSongId = null;
-        };
-
-        // Обработка ошибок воспроизведения
-        audio.onerror = function() {
-            showError('Ошибка загрузки аудиофайла');
-            audio.style.display = 'none';
-            button.textContent = '▶ Воспроизвести';
-            button.classList.remove('playing');
-            songItem.classList.remove('currently-playing');
-        };
-    }
-
-    function showError(message) {
-        const errorMessage = document.getElementById('errorMessage');
-        const loadingMessage = document.getElementById('loadingMessage');
-        const songList = document.getElementById('songList');
-
-        loadingMessage.style.display = 'none';
-        songList.style.display = 'none';
-        errorMessage.style.display = 'block';
-        errorMessage.textContent = message;
-    }
-
-    // Функция для экранирования HTML
-    function escapeHtml(unsafe) {
-        return unsafe
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
-    }
 </script>
 </body>
 </html>
