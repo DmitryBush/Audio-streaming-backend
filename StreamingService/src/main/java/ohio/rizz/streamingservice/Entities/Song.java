@@ -25,9 +25,6 @@ public class Song {
     @Column(name = "duration", nullable = false)
     private Integer duration;
 
-    @Column(name = "file_url", length = 255, nullable = false)
-    private String fileUrl;
-
     @Column(name = "disc_number")
     private Short discNumber;
 

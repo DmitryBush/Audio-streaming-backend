@@ -16,13 +16,13 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 
 @Service
-public class StorageService {
+public class ObjectStorageService {
     private final MinioClient minioClient;
 
     @Autowired
-    public StorageService(@Value("${storage-service.endpoint}") String endpoint,
-                          @Value("${storage-service.access-key}") String accessKey,
-                          @Value("${storage-service.secret-key}") String secretKey) {
+    public ObjectStorageService(@Value("${storage-service.endpoint}") String endpoint,
+                                @Value("${storage-service.access-key}") String accessKey,
+                                @Value("${storage-service.secret-key}") String secretKey) {
         minioClient = MinioClient.builder()
                 .endpoint(endpoint)
                 .credentials(accessKey, secretKey)
@@ -59,6 +59,19 @@ public class StorageService {
         } catch (ServerException | InsufficientDataException | ErrorResponseException | IOException |
                  NoSuchAlgorithmException | InvalidKeyException | InvalidResponseException | XmlParserException |
                  InternalException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public InputStreamResource loadStreamResource(String bucket, String object, Long startPosition, Long chunkSize) {
+        try {
+            InputStream inputStream = minioClient.getObject(GetObjectArgs.builder()
+                                                                    .bucket(bucket).object(object).offset(startPosition)
+                                                                    .length(chunkSize).build());
+            return new InputStreamResource(inputStream);
+        } catch (ServerException | InternalException | XmlParserException | InsufficientDataException |
+                 ErrorResponseException | IOException | NoSuchAlgorithmException | InvalidKeyException |
+                 InvalidResponseException e) {
             throw new RuntimeException(e);
         }
     }
