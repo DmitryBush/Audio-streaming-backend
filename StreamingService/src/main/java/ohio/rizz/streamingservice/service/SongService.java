@@ -7,11 +7,11 @@ import ohio.rizz.streamingservice.dto.SongDto;
 import ohio.rizz.streamingservice.dto.SongReadDto;
 import ohio.rizz.streamingservice.service.metadata.mapper.SongCreateMapper;
 import ohio.rizz.streamingservice.service.metadata.mapper.SongReadMapper;
+import ohio.rizz.streamingservice.service.storage.ObjectStorageService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
@@ -23,7 +23,7 @@ public class SongService {
     private final SongCreateMapper songCreateMapper;
     private final SongReadMapper songReadMapper;
 
-    public SongReadDto createSong(SongDto songDto, Album album, String objectReference) {
+    public SongReadDto createSong(SongDto songDto, Album album) {
         return songRepository.findByName(songDto.name())
                 .map(songReadMapper::mapToSongReadDto)
                 .orElseGet(() -> Optional.of(songDto)
@@ -31,7 +31,6 @@ public class SongService {
                         .map(song -> {
                             song.setArtist(album.getArtist());
                             song.setAlbum(album);
-                            song.setFileUrl(objectReference);
                             return song;
                         })
                         .map(songRepository::save)
@@ -49,4 +48,10 @@ public class SongService {
                 .map(songReadMapper::mapToSongReadDto)
                 .orElseThrow(() -> new NoSuchElementException("Песня не найдена"));
     }
+
+//    public Resource getStreamingAudioResource(Long id) {
+//        return songRepository.findById(id)
+//                .map(song -> objectStorageService.loadStreamResource("audio", song.getFileUrl()))
+//                .orElseThrow(NoSuchElementException::new);
+//    }
 }

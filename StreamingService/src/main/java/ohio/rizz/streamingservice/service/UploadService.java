@@ -9,7 +9,7 @@ import ohio.rizz.streamingservice.service.artist.ArtistService;
 import ohio.rizz.streamingservice.service.filesystem.FileSystemService;
 import ohio.rizz.streamingservice.service.genre.GenreService;
 import ohio.rizz.streamingservice.service.metadata.*;
-import ohio.rizz.streamingservice.service.storage.StorageService;
+import ohio.rizz.streamingservice.service.storage.ObjectStorageService;
 import ohio.rizz.streamingservice.service.type.ContentTypeService;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -26,7 +26,7 @@ public class UploadService {
     private final MetadataParserService metadataParserService;
     private final ContentTypeService contentTypeService;
     private final FileSystemService fileSystemService;
-    private final StorageService storageService;
+    private final ObjectStorageService objectStorageService;
 
     private final ArtistService artistService;
     private final GenreService genreService;
@@ -52,10 +52,10 @@ public class UploadService {
             String songObjectReference = String.format("track/%s/audio%s",
                                                    UUID.nameUUIDFromBytes(song.name().getBytes(StandardCharsets.UTF_8)),
                                                    contentTypeService.getSuffixType(multipartFile));
-            var songReadDto = songService.createSong(song, album, songObjectReference);
+            var songReadDto = songService.createSong(song, album);
 
-            storageService.saveFile(tmpSongFile, "audio", songObjectReference);
-            storageService.saveFile(tmpArtFile, "art", song.albumDto().artworkDto().objectReference());
+            objectStorageService.saveFile(tmpSongFile, "audio", songObjectReference);
+            objectStorageService.saveFile(tmpArtFile, "art", song.albumDto().artworkDto().objectReference());
             return songReadDto;
         } catch (IOException e) {
             throw new RuntimeException(e);
