@@ -1,8 +1,7 @@
 package ohio.rizz.streamingservice.controller;
 
 import lombok.RequiredArgsConstructor;
-import ohio.rizz.streamingservice.dto.SongDto;
-import ohio.rizz.streamingservice.dto.SongReadDto;
+import ohio.rizz.streamingservice.dto.song.SongReadDto;
 import ohio.rizz.streamingservice.service.UploadService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

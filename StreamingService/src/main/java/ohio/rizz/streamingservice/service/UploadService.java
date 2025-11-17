@@ -2,13 +2,16 @@ package ohio.rizz.streamingservice.service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import ohio.rizz.streamingservice.dto.SongDto;
-import ohio.rizz.streamingservice.dto.SongReadDto;
+import ohio.rizz.streamingservice.dto.song.AudioMetadataDto;
+import ohio.rizz.streamingservice.dto.song.SongDto;
+import ohio.rizz.streamingservice.dto.song.SongReadDto;
 import ohio.rizz.streamingservice.service.album.AlbumService;
 import ohio.rizz.streamingservice.service.artist.ArtistService;
 import ohio.rizz.streamingservice.service.filesystem.FileSystemService;
 import ohio.rizz.streamingservice.service.genre.GenreService;
 import ohio.rizz.streamingservice.service.metadata.*;
+import ohio.rizz.streamingservice.service.song.AudioMetadataService;
+import ohio.rizz.streamingservice.service.song.SongService;
 import ohio.rizz.streamingservice.service.storage.ObjectStorageService;
 import ohio.rizz.streamingservice.service.type.ContentTypeService;
 import org.springframework.stereotype.Service;
@@ -32,6 +35,7 @@ public class UploadService {
     private final GenreService genreService;
     private final AlbumService albumService;
     private final SongService songService;
+    private final AudioMetadataService metadataService;
 
     @Transactional(rollbackOn = Exception.class)
     public SongReadDto uploadFile(MultipartFile multipartFile) {
@@ -49,11 +53,13 @@ public class UploadService {
             var artist = artistService.getReferenceById(artistService.createArtist(song.artistDto()).id());
             var genre = genreService.getReferenceById(genreService.createGenre(song.albumDto().genreDto()).id());
             var album = albumService.getReferenceById(albumService.createAlbum(song.albumDto(), artist, genre).id());
-            String songObjectReference = String.format("track/%s/audio%s",
-                                                   UUID.nameUUIDFromBytes(song.name().getBytes(StandardCharsets.UTF_8)),
-                                                   contentTypeService.getSuffixType(multipartFile));
             var songReadDto = songService.createSong(song, album);
 
+            String songObjectReference = String.format("track/%s/audio",
+                                                       UUID.nameUUIDFromBytes(song.name().getBytes(StandardCharsets.UTF_8)));
+            metadataService.createSongMetadata(
+                    new AudioMetadataDto(songReadDto.id(), multipartFile.getSize(),
+                                         multipartFile.getContentType(), songObjectReference));
             objectStorageService.saveFile(tmpSongFile, "audio", songObjectReference);
             objectStorageService.saveFile(tmpArtFile, "art", song.albumDto().artworkDto().objectReference());
             return songReadDto;

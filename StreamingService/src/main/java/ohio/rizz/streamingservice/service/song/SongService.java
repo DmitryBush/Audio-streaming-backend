@@ -1,13 +1,13 @@
-package ohio.rizz.streamingservice.service;
+package ohio.rizz.streamingservice.service.song;
 
 import lombok.RequiredArgsConstructor;
 import ohio.rizz.streamingservice.Entities.Album;
+import ohio.rizz.streamingservice.Entities.Song;
 import ohio.rizz.streamingservice.Repositories.SongRepository;
-import ohio.rizz.streamingservice.dto.SongDto;
-import ohio.rizz.streamingservice.dto.SongReadDto;
-import ohio.rizz.streamingservice.service.metadata.mapper.SongCreateMapper;
-import ohio.rizz.streamingservice.service.metadata.mapper.SongReadMapper;
-import ohio.rizz.streamingservice.service.storage.ObjectStorageService;
+import ohio.rizz.streamingservice.dto.song.SongDto;
+import ohio.rizz.streamingservice.dto.song.SongReadDto;
+import ohio.rizz.streamingservice.service.song.mapper.SongCreateMapper;
+import ohio.rizz.streamingservice.service.song.mapper.SongReadMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -49,9 +49,7 @@ public class SongService {
                 .orElseThrow(() -> new NoSuchElementException("Песня не найдена"));
     }
 
-//    public Resource getStreamingAudioResource(Long id) {
-//        return songRepository.findById(id)
-//                .map(song -> objectStorageService.loadStreamResource("audio", song.getFileUrl()))
-//                .orElseThrow(NoSuchElementException::new);
-//    }
+    public Song getReferenceById(Long id) {
+        return songRepository.getReferenceById(id);
+    }
 }

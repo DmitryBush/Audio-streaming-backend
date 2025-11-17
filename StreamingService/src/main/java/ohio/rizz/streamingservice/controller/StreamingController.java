@@ -1,8 +1,8 @@
 package ohio.rizz.streamingservice.controller;
 
 import lombok.RequiredArgsConstructor;
-import ohio.rizz.streamingservice.dto.SongReadDto;
-import ohio.rizz.streamingservice.service.SongService;
+import ohio.rizz.streamingservice.dto.song.SongReadDto;
+import ohio.rizz.streamingservice.service.song.SongService;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.InputStreamResource;

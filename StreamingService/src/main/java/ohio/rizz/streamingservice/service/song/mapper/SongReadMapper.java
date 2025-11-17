@@ -1,7 +1,7 @@
-package ohio.rizz.streamingservice.service.metadata.mapper;
+package ohio.rizz.streamingservice.service.song.mapper;
 
 import ohio.rizz.streamingservice.Entities.Song;
-import ohio.rizz.streamingservice.dto.SongReadDto;
+import ohio.rizz.streamingservice.dto.song.SongReadDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;
 
