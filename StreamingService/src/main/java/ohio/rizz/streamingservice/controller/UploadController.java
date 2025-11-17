@@ -5,20 +5,19 @@ import ohio.rizz.streamingservice.dto.song.SongReadDto;
 import ohio.rizz.streamingservice.service.UploadService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+
 @RestController
-@RequestMapping("/api/v1/audio")
+@RequestMapping("/api/v1/uploads")
 @RequiredArgsConstructor
-public class AudioController {
+public class UploadController {
     private final UploadService uploadService;
 
-    @PostMapping("/upload")
+    @PostMapping("/uploadSong")
     public ResponseEntity<SongReadDto> uploadAudio(@RequestParam("file") MultipartFile file) {
         return new ResponseEntity<>(uploadService.uploadFile(file), HttpStatus.OK);
     }
+
 }
