@@ -6,6 +6,7 @@ import ohio.rizz.streamingservice.dto.song.AudioMetadataDto;
 import ohio.rizz.streamingservice.service.song.mapper.MetadataMapper;
 import org.springframework.stereotype.Service;
 
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Service
@@ -21,5 +22,11 @@ public class AudioMetadataService {
                 .map(metadataRepository::save)
                 .map(metadataMapper::mapToAudioMetadataDto)
                 .orElseThrow(IllegalArgumentException::new);
+    }
+
+    public AudioMetadataDto findMetadataById(Long id) {
+        return metadataRepository.findById(id)
+                .map(metadataMapper::mapToAudioMetadataDto)
+                .orElseThrow(NoSuchElementException::new);
     }
 }
