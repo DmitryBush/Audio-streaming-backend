@@ -29,7 +29,9 @@ public class SongService {
                 .orElseGet(() -> Optional.of(songDto)
                         .map(songCreateMapper::mapToSong)
                         .map(song -> {
-                            song.setArtist(album.getArtist());
+                            song.setArtist(Optional.ofNullable(album)
+                                                   .map(Album::getArtist)
+                                                   .orElse(null));
                             song.setAlbum(album);
                             return song;
                         })
