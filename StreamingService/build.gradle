@@ -36,6 +36,8 @@ dependencies {
     compileOnly 'org.mapstruct:mapstruct-processor:1.6.3'
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
     implementation("org.springframework.boot:spring-boot-starter-hateoas")
+    implementation 'org.springframework.boot:spring-boot-starter-cache'
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
     implementation 'net.jthink:jaudiotagger:3.0.1'
 

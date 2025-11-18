@@ -1,10 +1,8 @@
 package ohio.rizz.streamingservice.dto;
 
-import java.time.LocalDate;
-
 public record AlbumReadDto(Long id,
                            String name,
-                           LocalDate releaseDate,
+                           Integer releaseYear,
                            Short discCount,
                            GenreReadDto genreDto) {
 }

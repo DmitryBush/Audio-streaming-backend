@@ -1,6 +1,5 @@
 package ohio.rizz.streamingservice.dto.song;
 
-import ohio.rizz.streamingservice.dto.AlbumDto;
 import ohio.rizz.streamingservice.dto.ArtistDto;
 
 public record SongReadDto(Long id,
@@ -9,5 +8,5 @@ public record SongReadDto(Long id,
                           Integer duration,
                           Short trackNumberAlbum,
                           ArtistDto artistDto,
-                          AlbumDto albumDto) {
+                          Long albumId) {
 }

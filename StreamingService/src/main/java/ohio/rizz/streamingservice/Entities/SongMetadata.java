@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Entity
 @Table(name = "audio_metadata")
-public class AudioMetadata {
+public class SongMetadata {
     @Id
     private Long id;
     @Column(nullable = false)
