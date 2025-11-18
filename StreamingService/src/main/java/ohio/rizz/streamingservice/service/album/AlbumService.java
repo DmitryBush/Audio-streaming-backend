@@ -10,10 +10,13 @@ import ohio.rizz.streamingservice.dto.AlbumReadDto;
 import ohio.rizz.streamingservice.service.album.mapper.AlbumCreateMapper;
 import ohio.rizz.streamingservice.service.album.mapper.AlbumReadMapper;
 import ohio.rizz.streamingservice.service.storage.ObjectStorageService;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -31,6 +34,7 @@ public class AlbumService {
 
     private final ObjectStorageService objectStorageService;
 
+    @Transactional(propagation = Propagation.MANDATORY)
     public AlbumReadDto createAlbum(AlbumDto albumDto, Artist artist, Genre genre) {
         return albumRepository.findByName(albumDto.name())
                 .map(albumReadMapper::mapToAlbumReadDto)
@@ -50,12 +54,14 @@ public class AlbumService {
         return albumRepository.getReferenceById(id);
     }
 
+    @Cacheable(key = "#id", cacheNames = "albums")
     public AlbumReadDto findAlbumById(Long id) {
         return albumRepository.findById(id)
                 .map(albumReadMapper::mapToAlbumReadDto)
                 .orElseThrow(NoSuchElementException::new);
     }
 
+    @Cacheable(key = "#artistId", cacheNames = "albums:artists")
     public List<AlbumReadDto> findAlbumsByArtistId(Long artistId) {
         return albumRepository.findByArtistId(artistId).stream()
                 .map(albumReadMapper::mapToAlbumReadDto)
@@ -63,8 +69,16 @@ public class AlbumService {
     }
 
     public Resource getAlbumArtwork(Long id) {
+        return Optional.of(getAlbumArtworkObjectReference(id))
+                .map(reference -> objectStorageService.loadResource("art", reference))
+                .orElseThrow(NoSuchElementException::new);
+    }
+
+    @NotNull
+    @Cacheable(key = "#id", cacheNames = "albums:artworks")
+    private String getAlbumArtworkObjectReference(Long id) {
         return albumRepository.findById(id)
-                .map(album -> objectStorageService.loadResource("art", album.getCoverArtUrl()))
+                .map(Album::getCoverArtUrl)
                 .orElseThrow(NoSuchElementException::new);
     }
 
