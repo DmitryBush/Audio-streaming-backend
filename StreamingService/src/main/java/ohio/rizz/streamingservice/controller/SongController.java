@@ -28,11 +28,11 @@ public class SongController {
     private final SongService songService;
     private final PagedResourcesAssembler<SongReadDto> assembler;
 
-    @GetMapping("/song/{songId}")
+    @GetMapping("/{id}")
     @ResponseBody
-    public ResponseEntity<SongReadDto> getSong(@PathVariable Long songId) {
+    public ResponseEntity<SongReadDto> getSong(@PathVariable Long id) {
         try {
-            SongReadDto song = songService.findById(songId);
+            SongReadDto song = songService.findById(id);
             return ResponseEntity.ok(song);
         } catch (NoSuchElementException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
