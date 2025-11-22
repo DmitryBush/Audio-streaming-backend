@@ -27,12 +27,12 @@ public class StreamingController {
     // GET http://localhost:8080/api/v1/audio/stream/1
     // Headers:
     // Range: bytes=0-999
-    @GetMapping("/stream/{songId}")
+    @GetMapping("/stream/{id}")
     public ResponseEntity<Resource> streamAudio(
-            @PathVariable Long songId,
+            @PathVariable Long id,
             @RequestHeader HttpHeaders headers) {
         try {
-            var metadata = metadataService.findMetadataById(songId);
+            var metadata = metadataService.findMetadataById(id);
             long contentLength = metadata.contentLength();
             List<HttpRange> ranges = headers.getRange();
 
