@@ -1,0 +1,30 @@
+spring:
+  datasource:
+    user:
+      url: jdbc:postgresql://localhost:5432/user
+      username: postgres
+      password: postgres
+      driver-class-name: org.postgresql.Driver
+    playlist:
+      url: jdbc:postgresql://localhost:5432/playlist
+      username: postgres
+      password: postgres
+      driver-class-name: org.postgresql.Driver
+  jpa:
+    open-in-view: false
+    properties.hibernate:
+      show_sql: true
+      format_sql: true
+      hbm2ddl.auto: validate
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  cache:
+    type: redis
+
+liquibase:
+  user:
+    change-log: classpath:liquibase/user/changelog-master.yaml
+  playlist:
+    change-log: classpath:liquibase/playlist/changelog-master.yaml

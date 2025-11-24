@@ -1,0 +1,56 @@
+package com.bush.playlist.config;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.jdbc.DataSourceBuilder;
+import org.springframework.boot.orm.jpa.EntityManagerFactoryBuilder;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.orm.jpa.JpaTransactionManager;
+import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
+import org.springframework.transaction.PlatformTransactionManager;
+
+import javax.sql.DataSource;
+import java.util.Objects;
+
+@Configuration
+@EnableJpaRepositories(
+        basePackages = "com.bush.playlist.repository",
+        entityManagerFactoryRef = "playlistEntityManagerFactory",
+        transactionManagerRef = "playlistTransactionManager"
+)
+public class PlaylistDbConfig {
+    @Bean("playlistDataSource")
+    @ConfigurationProperties("spring.datasource.playlist")
+    public DataSource playlistDataSource(@Value("${spring.datasource.playlist.url}") String url,
+                                         @Value("${spring.datasource.playlist.username}") String username,
+                                         @Value("${spring.datasource.playlist.password}") String password,
+                                         @Value("${spring.datasource.playlist.driver-class-name}") String driverName) {
+        return DataSourceBuilder.create()
+                .url(url)
+                .username(username)
+                .password(password)
+                .driverClassName(driverName)
+                .build();
+    }
+
+    @Bean
+    public LocalContainerEntityManagerFactoryBean
+    playlistEntityManagerFactory(EntityManagerFactoryBuilder builder,
+                                 @Autowired @Qualifier("playlistDataSource") DataSource dataSource) {
+        return builder
+                .dataSource(dataSource)
+                .packages("com.bush.playlist.entity")
+                .persistenceUnit("playlist")
+                .build();
+    }
+
+    @Bean
+    public PlatformTransactionManager playlistTransactionManager(
+            @Qualifier("playlistEntityManagerFactory") LocalContainerEntityManagerFactoryBean entityManagerFactoryBean) {
+        return new JpaTransactionManager(Objects.requireNonNull(entityManagerFactoryBean.getObject()));
+    }
+}
