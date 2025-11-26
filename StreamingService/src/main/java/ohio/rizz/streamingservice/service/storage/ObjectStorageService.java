@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -14,6 +15,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 public class ObjectStorageService {
@@ -44,6 +46,31 @@ public class ObjectStorageService {
         } catch (ErrorResponseException | InsufficientDataException | InternalException | InvalidKeyException |
                  InvalidResponseException | IOException | NoSuchAlgorithmException | ServerException |
                  XmlParserException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Async("fileUploadTaskExecutor")
+    public CompletableFuture<Void> saveFileAsync(File file, String bucket, String object) {
+        CompletableFuture<Void> future = new CompletableFuture<>();
+        try {
+            saveFile(file, bucket, object);
+            future.complete(null);
+        } catch (RuntimeException e) {
+            future.completeExceptionally(e);
+        }
+        return future;
+    }
+
+    public void deleteFile(String bucket, String object) {
+        try {
+            minioClient.removeObject(RemoveObjectArgs.builder()
+                    .bucket(bucket)
+                    .object(object)
+                    .build());
+        } catch (ServerException | InsufficientDataException | ErrorResponseException | IOException |
+                 NoSuchAlgorithmException | InvalidKeyException | InvalidResponseException | XmlParserException |
+                 InternalException e) {
             throw new RuntimeException(e);
         }
     }
