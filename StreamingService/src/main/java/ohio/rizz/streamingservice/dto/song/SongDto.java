@@ -7,6 +7,7 @@ public record SongDto(String name,
                       Short discNumber,
                       Integer duration,
                       Short trackNumberAlbum,
+                      String objectReference,
                       ArtistDto artistDto,
                       AlbumDto albumDto) {
 }
