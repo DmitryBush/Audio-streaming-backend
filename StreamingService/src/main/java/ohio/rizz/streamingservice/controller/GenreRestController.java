@@ -36,7 +36,7 @@ public class GenreRestController {
         }
     }
 
-    @GetMapping
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<PagedModel<EntityModel<GenreReadDto>>> findAllGenres(@PageableDefault(size = 15) Pageable pageable) {
         var genres = assembler.toModel(genreService.findAllGenres(pageable));
         return ResponseEntity.ok(genres);
