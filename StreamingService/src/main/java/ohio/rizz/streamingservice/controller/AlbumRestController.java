@@ -47,7 +47,7 @@ public class AlbumRestController {
         }
     }
 
-    @GetMapping
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<PagedModel<EntityModel<AlbumReadDto>>> findAlbums(@PageableDefault(size = 15) Pageable pageable) {
         var albums = assembler.toModel(albumService.findAllAlbums(pageable));
         return ResponseEntity.ok(albums);
