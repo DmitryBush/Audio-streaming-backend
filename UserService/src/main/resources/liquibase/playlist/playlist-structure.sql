@@ -1,5 +1,5 @@
 CREATE TABLE playlists (
-    playlist_id SERIAL PRIMARY KEY,
+    playlist_id SERIAL NOT NULL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     creator_id INTEGER NOT NULL
 );
