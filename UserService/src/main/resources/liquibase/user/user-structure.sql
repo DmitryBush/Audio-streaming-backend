@@ -1,12 +1,12 @@
 CREATE TABLE roles (
-    role_id SHORT NOT NULL PRIMARY KEY,
+    role_id SMALLINT NOT NULL PRIMARY KEY,
     role_name VARCHAR(20) NOT NULL UNIQUE
 );
 
 CREATE TABLE users (
-    user_id SERIAL NOT NULL PRIMARY KEY,
+    user_id BIGSERIAL NOT NULL PRIMARY KEY,
     login VARCHAR(20) NOT NULL UNIQUE,
-    role_id SHORT NOT NULL,
+    role_id SMALLINT NOT NULL,
     password VARCHAR(255) NOT NULL,
 
     FOREIGN KEY (role_id) REFERENCES roles(role_id)
