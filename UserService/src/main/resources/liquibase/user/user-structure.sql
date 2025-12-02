@@ -1,5 +1,5 @@
 CREATE TABLE roles (
-    role_id SHORT PRIMARY KEY,
+    role_id SHORT NOT NULL PRIMARY KEY,
     role_name VARCHAR(20) NOT NULL UNIQUE
 );
 
