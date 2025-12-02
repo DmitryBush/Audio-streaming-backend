@@ -1,9 +1,16 @@
 package com.bush.entity;
 
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+
 import jakarta.persistence.*;
 
 @Entity
 @Table(name = "roles")
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class Role {
     
     @Id
@@ -12,29 +19,4 @@ public class Role {
     
     @Column(name = "role_name", nullable = false, unique = true)
     private String roleName;
-
-    // Constructors
-    public Role() {}
-    
-    public Role(Short roleId, String roleName) {
-        this.roleId = roleId;
-        this.roleName = roleName;
-    }
-    
-    // Getters and Setters
-    public Short getRoleId() {
-        return roleId;
-    }
-
-    public void setRoleId(Short roleId) {
-        this.roleId = roleId;
-    }
-
-    public String getRoleName() {
-        return roleName;
-    }
-
-    public void setRoleName(String roleName) {
-        this.roleName = roleName;
-    }
 }

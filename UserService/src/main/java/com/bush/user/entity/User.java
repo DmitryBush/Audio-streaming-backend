@@ -1,9 +1,16 @@
 package com.bush.entity;
 
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+
 import jakarta.persistence.*;
 
 @Entity
 @Table(name = "users")
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class User {
     
     @Id
@@ -19,46 +26,4 @@ public class User {
     
     @Column(name = "password", nullable = false)
     private String password;
-
-    // Constructors
-    public User() {}
-    
-    public User(String login, Short roleId, String password) {
-        this.login = login;
-        this.roleId = roleId;
-        this.password = password;
-    }
-    
-    // Getters and Setters
-    public Integer getUserId() {
-        return userId;
-    }
-
-    public void setUserId(Integer userId) {
-        this.userId = userId;
-    }
-
-    public String getLogin() {
-        return login;
-    }
-
-    public void setLogin(String login) {
-        this.login = login;
-    }
-
-    public Short getRoleId() {
-        return roleId;
-    }
-
-    public void setRoleId(Short roleId) {
-        this.roleId = roleId;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
 }
