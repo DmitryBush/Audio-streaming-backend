@@ -15,7 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class UploadController {
     private final UploadService uploadService;
 
-    @PostMapping("/uploadSong")
+    @PostMapping("/upload-song")
     public ResponseEntity<SongReadDto> uploadAudio(@RequestParam("file") MultipartFile file) {
         return new ResponseEntity<>(uploadService.uploadFile(file), HttpStatus.OK);
     }
