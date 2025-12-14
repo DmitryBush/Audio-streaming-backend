@@ -12,11 +12,10 @@ import org.springframework.core.io.Resource;
 
 import java.util.List;
 
-@Controller
+@RestController
 @RequestMapping("/api/v1/streaming")
 @RequiredArgsConstructor
 public class StreamingController {
-    private final SongService songService;
     private final AudioMetadataService metadataService;
     private final ObjectStorageService objectStorageService;
 
@@ -27,7 +26,7 @@ public class StreamingController {
     // GET http://localhost:8080/api/v1/audio/stream/1
     // Headers:
     // Range: bytes=0-999
-    @GetMapping("/stream/{id}")
+    @GetMapping(value = "/stream/{id}", produces = {"audio/flac", "audio/mpeg", "audio/ogg", "audio/vorbis"})
     public ResponseEntity<Resource> streamAudio(
             @PathVariable Long id,
             @RequestHeader HttpHeaders headers) {

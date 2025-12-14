@@ -46,7 +46,7 @@ public class ArtistRestController {
         return new ResponseEntity<>(albumService.findAlbumsByArtistId(id), HttpStatus.OK);
     }
 
-    @GetMapping
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<PagedModel<EntityModel<ArtistReadDto>>> findAllArtists(@PageableDefault(size = 15) Pageable pageable) {
         var artists = assembler.toModel(artistService.findAllArtists(pageable));
         return new ResponseEntity<>(artists, HttpStatus.OK);
