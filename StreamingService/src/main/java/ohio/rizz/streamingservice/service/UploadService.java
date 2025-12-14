@@ -8,6 +8,7 @@ import ohio.rizz.streamingservice.Entities.Artist;
 import ohio.rizz.streamingservice.Entities.Genre;
 import ohio.rizz.streamingservice.dto.AlbumDto;
 import ohio.rizz.streamingservice.dto.ArtistDto;
+import ohio.rizz.streamingservice.dto.ArtworkDto;
 import ohio.rizz.streamingservice.dto.GenreDto;
 import ohio.rizz.streamingservice.dto.song.AudioMetadataDto;
 import ohio.rizz.streamingservice.dto.song.SongDto;
@@ -21,17 +22,23 @@ import ohio.rizz.streamingservice.service.song.AudioMetadataService;
 import ohio.rizz.streamingservice.service.song.SongService;
 import ohio.rizz.streamingservice.service.storage.BucketStreamingConstants;
 import ohio.rizz.streamingservice.service.storage.ObjectStorageService;
+import ohio.rizz.streamingservice.service.storage.exception.ObjectStorageException;
 import ohio.rizz.streamingservice.service.type.ContentTypeService;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 
 @Service
 @RequiredArgsConstructor
@@ -52,69 +59,70 @@ public class UploadService {
     public SongReadDto uploadFile(MultipartFile multipartFile) {
         File tempSongFile = fileSystemService.createTemporalFile(multipartFile,
                 contentTypeService.getSuffixType(multipartFile));
-        File tempArtFile = fileSystemService.createTemporalFile("art", ".tmp");
-        SongDto songDto = null;
+        Map<String, String> objectReferencesMap = new HashMap<>();
         Map<String, CompletableFuture<Void>> asyncTasks = new HashMap<>();
         try {
             multipartFile.transferTo(tempSongFile);
-            songDto = metadataParserService.extractMetadataFromFile(tempSongFile);
-            final AlbumDto albumDto = songDto.albumDto();
-            final ArtistDto artistDto = songDto.artistDto();
+            final SongDto songDto = metadataParserService.extractMetadataFromFile(tempSongFile);
 
-            asyncTasks.put(BucketStreamingConstants.AUDIO.getTitle(), objectStorageService
-                    .saveFileAsync(tempSongFile, "audio", songDto.objectReference()));
-            asyncTasks.put(BucketStreamingConstants.ART.getTitle(), uploadArtwork(albumDto, tempArtFile));
+            fillObjectReferenceMap(objectReferencesMap, songDto);
+            runAsyncObjectUploadTasks(asyncTasks, tempSongFile, songDto);
 
-            Artist artist = uploadArtistMetadata(artistDto);
-            Album album = uploadAlbumMetadata(albumDto, artist);
-            SongReadDto songReadDto = songService.createSong(songDto, album);
-            metadataService.createSongMetadata(new AudioMetadataDto(songReadDto.id(), multipartFile.getSize(),
-                    multipartFile.getContentType(), songDto.objectReference()));
+            SongReadDto songReadDto = createDatabaseRecords(multipartFile, songDto);
 
             asyncTasks.values().forEach(CompletableFuture::join);
             return songReadDto;
-        } catch (IOException | RuntimeException e) {
+        } catch (IOException | CompletionException | ObjectStorageException e) {
             log.error("Filed to upload file: {}", e.getMessage());
             asyncTasks.values().forEach(future -> {
                 if (!future.isDone()) {
                     future.cancel(true);
                 }
             });
-            rollbackObjectStorageUpload(songDto);
-            throw new RuntimeException(e);
+            objectReferencesMap.forEach(this::deleteObjectStorageUpload);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         } finally {
             deleteTemporalFile(tempSongFile);
-            deleteTemporalFile(tempArtFile);
         }
     }
 
-    private void rollbackObjectStorageUpload(SongDto songDto) {
-        Optional.ofNullable(songDto)
-                .ifPresent(dto -> {
-                    objectStorageService.deleteFile(BucketStreamingConstants.AUDIO.getTitle(), dto.objectReference());
-                    Optional.ofNullable(songDto.albumDto())
-                            .map(AlbumDto::artworkDto)
-                            .ifPresent(artworkDto ->
-                                    objectStorageService.deleteFile(BucketStreamingConstants.ART.getTitle(),
-                                            artworkDto.objectReference()));
-                });
+    private static void fillObjectReferenceMap(Map<String, String> objectReferencesMap, final SongDto songDto) {
+        objectReferencesMap.put(BucketStreamingConstants.AUDIO.getTitle(), songDto.objectReference());
+        objectReferencesMap.put(BucketStreamingConstants.ART.getTitle(),
+                Optional.ofNullable(songDto.albumDto())
+                        .map(AlbumDto::artworkDto)
+                        .map(ArtworkDto::objectReference)
+                        .orElse(""));
     }
 
-    private static void deleteTemporalFile(File file) {
-        if (!file.delete()) {
-            throw new RuntimeException("The temporary file was not deleted due to an unknown error");
-        }
+    private void runAsyncObjectUploadTasks(Map<String, CompletableFuture<Void>> asyncTasks, File tempSongFile, SongDto songDto) {
+        asyncTasks.put(BucketStreamingConstants.AUDIO.getTitle(), objectStorageService
+                .saveFileAsync(tempSongFile, BucketStreamingConstants.AUDIO.getTitle(), songDto.objectReference()));
+        asyncTasks.put(BucketStreamingConstants.ART.getTitle(), uploadArtwork(songDto.albumDto()));
     }
 
-    private CompletableFuture<Void> uploadArtwork(AlbumDto albumDto, File tempArtFile) {
+    private CompletableFuture<Void> uploadArtwork(AlbumDto albumDto) {
         return Optional.ofNullable(albumDto)
                 .map(AlbumDto::artworkDto)
-                .map(artworkDto -> {
-                    fileSystemService.copyByteArrayToFile(tempArtFile, albumDto.artworkDto().binaryArray());
-                    return objectStorageService.saveFileAsync(tempArtFile, "art",
-                            albumDto.artworkDto().objectReference());
-                })
+                .map(artworkDto -> objectStorageService.saveFileAsync(
+                        new ByteArrayInputStream(artworkDto.binaryArray()),
+                        artworkDto.binaryArray().length,
+                        BucketStreamingConstants.ART.getTitle(),
+                        albumDto.artworkDto().objectReference()))
                 .orElse(CompletableFuture.completedFuture(null));
+    }
+
+    @NotNull
+    private SongReadDto createDatabaseRecords(MultipartFile multipartFile, SongDto songDto) {
+        final ArtistDto artistDto = songDto.artistDto();
+        final AlbumDto albumDto = songDto.albumDto();
+
+        Artist artist = uploadArtistMetadata(artistDto);
+        Album album = uploadAlbumMetadata(albumDto, artist);
+        SongReadDto songReadDto = songService.createSong(songDto, album);
+        metadataService.createSongMetadata(new AudioMetadataDto(songReadDto.id(), multipartFile.getSize(),
+                multipartFile.getContentType(), songDto.objectReference()));
+        return songReadDto;
     }
 
     private Album uploadAlbumMetadata(AlbumDto albumDto, Artist artist) {
@@ -140,5 +148,17 @@ public class UploadService {
                 .map(artistService::createArtist)
                 .map(artistReadDto -> artistService.getReferenceById(artistReadDto.id()))
                 .orElse(null);
+    }
+
+    private void deleteObjectStorageUpload(String bucket, String reference) {
+        if (!reference.isEmpty()) {
+            objectStorageService.deleteFile(bucket, reference);
+        }
+    }
+
+    private static void deleteTemporalFile(File file) {
+        if (!file.delete()) {
+            throw new RuntimeException("The temporary file was not deleted due to an unknown error");
+        }
     }
 }
