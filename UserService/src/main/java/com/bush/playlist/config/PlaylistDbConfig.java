@@ -1,5 +1,6 @@
 package com.bush.playlist.config;
 
+import org.hibernate.jpa.HibernatePersistenceProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -42,7 +43,6 @@ public class PlaylistDbConfig {
     }
 
     @Bean("playlistEntityManagerFactory")
-    @ConfigurationProperties("spring.datasource.jpa")
     public LocalContainerEntityManagerFactoryBean
     playlistEntityManagerFactory(@Autowired @Qualifier("playlistDataSource") DataSource dataSource) {
         LocalContainerEntityManagerFactoryBean entityManagerFactoryBean = new LocalContainerEntityManagerFactoryBean();
@@ -56,6 +56,8 @@ public class PlaylistDbConfig {
         HashMap<String, Object> properties = new HashMap<>();
         properties.put("hibernate.hbm2ddl.auto",
                 environment.getProperty("spring.datasource.jpa.properties-hibernate.hbm2ddl-auto"));
+        properties.put("show_sql", environment.getProperty("spring.datasource.jpa.properties-hibernate.show_sql"));
+        properties.put("format_sql", environment.getProperty("spring.datasource.jpa.properties-hibernate.format_sql"));
         entityManagerFactoryBean.setJpaPropertyMap(properties);
         return entityManagerFactoryBean;
     }
