@@ -4,8 +4,7 @@ CREATE TABLE roles (
 );
 
 CREATE TABLE users (
-    user_id BIGSERIAL NOT NULL PRIMARY KEY,
-    login VARCHAR(20) NOT NULL UNIQUE,
+    login VARCHAR(32) NOT NULL PRIMARY KEY,
     role_id SMALLINT NOT NULL,
     password VARCHAR(255) NOT NULL,
 
