@@ -1,6 +1,6 @@
-package com.bush.repository;
+package com.bush.user.repository;
 
-import com.bush.entity.Role;
+import com.bush.user.entity.Role;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

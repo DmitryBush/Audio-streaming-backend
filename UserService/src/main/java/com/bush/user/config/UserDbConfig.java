@@ -55,6 +55,8 @@ public class UserDbConfig {
         HashMap<String, Object> jpaPropertiesMap = new HashMap<>();
         jpaPropertiesMap.put("hibernate.hbm2ddl.auto",
                 environment.getProperty("spring.datasource.jpa.properties-hibernate.hbm2ddl-auto"));
+        jpaPropertiesMap.put("show_sql", environment.getProperty("spring.datasource.jpa.properties-hibernate.show_sql"));
+        jpaPropertiesMap.put("format_sql", environment.getProperty("spring.datasource.jpa.properties-hibernate.format_sql"));
         entityManagerFactoryBean.setJpaPropertyMap(jpaPropertiesMap);
         return entityManagerFactoryBean;
     }

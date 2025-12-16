@@ -1,4 +1,4 @@
-package com.bush.entity;
+package com.bush.user.entity;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,9 +14,10 @@ import jakarta.persistence.*;
 public class Role {
     
     @Id
-    @Column(name = "role_id")
+    @Column(name = "role_id", nullable = false)
     private Short roleId;
-    
+
+    @Enumerated(EnumType.STRING)
     @Column(name = "role_name", nullable = false, unique = true)
-    private String roleName;
+    private RoleEnum roleName;
 }
