@@ -25,7 +25,7 @@ public class Playlist {
     private String name;
     
     @Column(name = "creator_id", nullable = false)
-    private Integer creatorId;
+    private String creatorId;
 
     @OneToMany(mappedBy = "id.playlist")
     private List<PlaylistTracks> tracks = new ArrayList<>();
