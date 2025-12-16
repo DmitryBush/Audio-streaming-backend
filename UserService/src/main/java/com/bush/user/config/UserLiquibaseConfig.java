@@ -12,7 +12,7 @@ import javax.sql.DataSource;
 
 @Configuration
 public class UserLiquibaseConfig {
-    @Bean
+    @Bean("userLiquibase")
     public SpringLiquibase userLiquibase(@Value("${liquibase.user.change-log}") String changeLog,
                                          @Autowired @Qualifier("userDataSource") DataSource dataSource) {
         SpringLiquibase liquibase = new SpringLiquibase();

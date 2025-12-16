@@ -12,7 +12,7 @@ import javax.sql.DataSource;
 
 @Configuration
 public class PlaylistLiquibaseConfig {
-    @Bean
+    @Bean("playlistLiquibase")
     public SpringLiquibase playlistLiquibase(@Value("${liquibase.playlist.change-log}") String changelog,
                                              @Autowired @Qualifier("playlistDataSource") DataSource dataSource) {
         SpringLiquibase liquibase = new SpringLiquibase();

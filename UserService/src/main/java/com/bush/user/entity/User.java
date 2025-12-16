@@ -1,4 +1,4 @@
-package com.bush.entity;
+package com.bush.user.entity;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -12,17 +12,13 @@ import jakarta.persistence.*;
 @AllArgsConstructor
 @NoArgsConstructor
 public class User {
-    
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "user_id")
-    private Integer userId;
-    
-    @Column(name = "login", nullable = false, unique = true)
+    @Column(name = "login", nullable = false)
     private String login;
-    
-    @Column(name = "role_id", nullable = false)
-    private Short roleId;
+
+    @OneToOne
+    @JoinColumn(name = "role_id", nullable = false)
+    private Role roleId;
     
     @Column(name = "password", nullable = false)
     private String password;
