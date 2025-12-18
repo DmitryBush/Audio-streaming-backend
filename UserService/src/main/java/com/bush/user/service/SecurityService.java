@@ -1,5 +1,6 @@
 package com.bush.user.service;
 
+import com.bush.user.dto.UserChangePasswordDto;
 import com.bush.user.dto.UserCreateDto;
 import com.bush.user.dto.UserLoginDto;
 import com.bush.user.service.user.UserService;
@@ -35,5 +36,11 @@ public class SecurityService {
         UserCreateDto encryptedUserCredentials =
                 new UserCreateDto(createDto.login(), passwordEncoder.encode(createDto.password()), createDto.roleId());
         userService.createUser(encryptedUserCredentials);
+    }
+
+    public void changePassword(UserChangePasswordDto changePasswordDto) {
+        UserChangePasswordDto encryptedUserCredentials = new UserChangePasswordDto(changePasswordDto.login(),
+                passwordEncoder.encode(changePasswordDto.oldPassword()), passwordEncoder.encode(changePasswordDto.newPassword()));
+        userService.changeUserPassword(encryptedUserCredentials);
     }
 }
