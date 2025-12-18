@@ -2,7 +2,6 @@ package com.bush.user.service.user;
 
 import com.bush.user.dto.UserChangePasswordDto;
 import com.bush.user.dto.UserCreateDto;
-import com.bush.user.dto.UserLoginDto;
 import com.bush.user.entity.Role;
 import com.bush.user.entity.RoleEnum;
 import com.bush.user.repository.RoleRepository;
@@ -44,10 +43,10 @@ public class UserService implements UserDetailsService {
     }
 
     @Transactional("userTransactionManager")
-    public void updateUserInfo(String userId, UserCreateDto dto) {
+    public void updateUserRole(String userId, Short roleId) {
         userRepository.findById(userId)
                 .map(user -> {
-                    Optional.ofNullable(dto.roleId())
+                    Optional.ofNullable(roleId)
                             .map(roleRepository::getReferenceById)
                             .ifPresent(user::setRole);
                     return user;
