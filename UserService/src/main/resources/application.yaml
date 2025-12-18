@@ -29,6 +29,9 @@ spring:
       parallelism: 1
       memory: 47104
       iterations: 2
+    jwt:
+      secret-key: secret
+      expiration: 1d
 
 liquibase:
   user:
