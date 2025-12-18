@@ -1,6 +1,8 @@
 package com.bush.user.service.user;
 
+import com.bush.user.dto.UserChangePasswordDto;
 import com.bush.user.dto.UserCreateDto;
+import com.bush.user.dto.UserLoginDto;
 import com.bush.user.entity.Role;
 import com.bush.user.entity.RoleEnum;
 import com.bush.user.repository.RoleRepository;
@@ -64,6 +66,20 @@ public class UserService implements UserDetailsService {
                 }, () -> {
                     throw new ResponseStatusException(HttpStatus.NOT_FOUND);
                 });
+    }
+
+    @Transactional("userTransactionManager")
+    public void changeUserPassword(UserChangePasswordDto dto) {
+        userRepository.findByLogin(dto.login())
+                .map(user -> {
+                    if (user.getPassword().equals(dto.oldPassword())) {
+                        user.setPassword(dto.newPassword());
+                        return user;
+                    }
+                    throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+                })
+                .map(userRepository::save)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
     }
 
     @Override

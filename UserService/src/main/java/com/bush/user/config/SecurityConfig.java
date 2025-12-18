@@ -43,6 +43,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(registry -> registry
                         .requestMatchers("/actuator/**", "/error").permitAll()
                         .requestMatchers("/api/*/login", "/api/*/register", "/api/*/logout").permitAll()
+                        .requestMatchers("/api/v1/change-password").fullyAuthenticated()
                         .requestMatchers("/api/*/security/**").hasRole(RoleEnum.ADMIN.name())
                         .requestMatchers("/api/*/playlists/**").authenticated()
                         .requestMatchers("/api/*/uploads/**").hasRole(RoleEnum.ADMIN.name())
