@@ -1,11 +1,11 @@
-package com.bush.user.service;
+package com.bush.user.service.user;
 
 import com.bush.user.dto.UserCreateDto;
 import com.bush.user.entity.Role;
 import com.bush.user.entity.RoleEnum;
 import com.bush.user.repository.RoleRepository;
 import com.bush.user.repository.UserRepository;
-import com.bush.user.service.mapper.UserCreateMapper;
+import com.bush.user.service.user.mapper.UserCreateMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -22,17 +22,16 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
+@Transactional(readOnly = true, transactionManager = "userTransactionManager")
 public class UserService implements UserDetailsService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
 
     private final UserCreateMapper userCreateMapper;
 
-    @Transactional
+    @Transactional("userTransactionManager")
     public void createUser(UserCreateDto dto) {
-        Role role = roleRepository.findById(dto.roleId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST));
+        Role role = roleRepository.getReferenceById(dto.roleId());
         Optional.of(dto)
                 .map(userCreateMapper::mapToUser)
                 .map(user -> {
@@ -42,20 +41,18 @@ public class UserService implements UserDetailsService {
                 .map(userRepository::save);
     }
 
-    @Transactional
+    @Transactional("userTransactionManager")
     public void updateUserInfo(String userId, UserCreateDto dto) {
         userRepository.findById(userId)
                 .map(user -> {
                     Optional.ofNullable(dto.roleId())
-                            .map(roleRepository::findById)
-                            .ifPresent(role -> {
-                                user.setRole(role.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND)));
-                            });
+                            .map(roleRepository::getReferenceById)
+                            .ifPresent(user::setRole);
                     return user;
                 });
     }
 
-    @Transactional
+    @Transactional("userTransactionManager")
     public void deleteUser(String userId) {
         userRepository.findById(userId)
                 .ifPresentOrElse(user -> {
