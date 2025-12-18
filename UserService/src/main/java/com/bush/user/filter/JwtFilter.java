@@ -50,7 +50,7 @@ public class JwtFilter extends OncePerRequestFilter {
             Authentication authentication = new UsernamePasswordAuthenticationToken(
                     jwtClaims.get("sub"),
                     null,
-                    typeConverterService.convertObjectToList(jwtClaims.get("role"), String.class)
+                    typeConverterService.convertObjectToParametrizedList(jwtClaims.get("role"), String.class)
                             .stream().map(SimpleGrantedAuthority::new).toList());
             SecurityContextHolder.getContext().setAuthentication(authentication);
         }

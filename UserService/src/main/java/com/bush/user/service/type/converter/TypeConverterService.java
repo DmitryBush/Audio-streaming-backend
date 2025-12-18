@@ -9,12 +9,12 @@ import java.util.Objects;
 
 @Service
 public class TypeConverterService {
-    public <T> List<T> convertObjectToList(Object object, Class<T> clazz) {
+    public <T> List<T> convertObjectToParametrizedList(Object object, Class<T> clazz) {
         if (Objects.isNull(object)) {
             return Collections.emptyList();
         }
 
-        if (object.getClass().isAssignableFrom(Collection.class)) {
+        if (Collection.class.isAssignableFrom(object.getClass())) {
             Collection<?> collection = (Collection<?>) object;
             return collection.stream()
                     .map(clazz::cast)
