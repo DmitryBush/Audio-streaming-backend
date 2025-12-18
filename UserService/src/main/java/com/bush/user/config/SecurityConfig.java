@@ -41,6 +41,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .addFilterBefore(jwtFilter, BasicAuthenticationFilter.class)
                 .authorizeHttpRequests(registry -> registry
+                        .requestMatchers("/actuator/**", "/error").permitAll()
                         .requestMatchers("/api/*/login", "/api/*/register", "/api/*/logout").permitAll()
                         .requestMatchers("/api/*/security/**").hasRole(RoleEnum.ADMIN.name())
                         .requestMatchers("/api/*/playlists/**").authenticated()
