@@ -1,7 +1,8 @@
 package com.bush.user.config;
 
 import com.bush.user.entity.RoleEnum;
-import com.bush.user.service.UserService;
+import com.bush.user.filter.JwtFilter;
+import com.bush.user.service.user.UserService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,6 +15,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -31,9 +33,10 @@ public class SecurityConfig {
     private Integer iterations;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity, JwtFilter jwtFilter) throws Exception {
         return httpSecurity
                 .csrf(Customizer.withDefaults())
+                .addFilterBefore(jwtFilter, BasicAuthenticationFilter.class)
                 .authorizeHttpRequests(registry -> registry
                         .requestMatchers("/api/*/login", "/api/*/register", "/api/*/logout").permitAll()
                         .requestMatchers("/api/*/security/**").hasRole(RoleEnum.ADMIN.name())
