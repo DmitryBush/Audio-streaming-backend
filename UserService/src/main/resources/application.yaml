@@ -30,7 +30,7 @@ spring:
       memory: 47104
       iterations: 2
     jwt:
-      secret-key: secret
+      secret-key: ${SECRET_SIGNING_KEY}
       expiration: 1d
 
 liquibase:
