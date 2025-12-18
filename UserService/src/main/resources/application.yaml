@@ -1,12 +1,12 @@
 spring:
   datasource:
     user:
-      url: jdbc:postgresql://localhost:5432/user
+      url: ${POSTGRES_USER_JDBC_URL}
       username: postgres
       password: postgres
       driver-class-name: org.postgresql.Driver
     playlist:
-      url: jdbc:postgresql://localhost:5432/playlist
+      url: ${POSTGRES_PLAYLIST_JDBC_URL}
       username: postgres
       password: postgres
       driver-class-name: org.postgresql.Driver
@@ -18,8 +18,8 @@ spring:
       hbm2ddl.auto: validate
   data:
     redis:
-      host: localhost
-      port: 6379
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
   cache:
     type: redis
   security:
