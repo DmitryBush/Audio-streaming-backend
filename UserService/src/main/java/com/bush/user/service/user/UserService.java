@@ -10,6 +10,7 @@ import com.bush.user.service.user.mapper.UserCreateMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -50,19 +51,31 @@ public class UserService implements UserDetailsService {
         userRepository.findById(userId)
                 .map(user -> {
                     Optional.ofNullable(roleId)
+                            .map(id -> {
+                                if (user.getRole().getRoleName().equals(RoleEnum.ADMIN)
+                                        && userRepository.countUserWithRole(RoleEnum.ADMIN) <= 1) {
+                                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+                                }
+                                return id;
+                            })
                             .map(roleRepository::getReferenceById)
                             .ifPresent(user::setRole);
                     return user;
-                });
+                })
+                .map(userRepository::save);
     }
 
     @Transactional("userTransactionManager")
     public void deleteUser(String userId) {
+        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getDetails();
         userRepository.findById(userId)
                 .ifPresentOrElse(user -> {
                     if (user.getRole().getRoleName().equals(RoleEnum.ADMIN)
                             && userRepository.countUserWithRole(RoleEnum.ADMIN) <= 1) {
                         throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+                    } else if (!userDetails.getUsername().equals(user.getLogin())
+                            && !userDetails.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_" + RoleEnum.ADMIN.name()))) {
+                        throw new ResponseStatusException(HttpStatus.FORBIDDEN);
                     }
                     userRepository.delete(user);
                 }, () -> {
