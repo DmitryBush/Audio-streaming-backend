@@ -14,6 +14,7 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -27,6 +28,8 @@ import java.util.Optional;
 public class UserService implements UserDetailsService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+
+    private final PasswordEncoder passwordEncoder;
 
     private final UserCreateMapper userCreateMapper;
 
@@ -71,14 +74,14 @@ public class UserService implements UserDetailsService {
     public void changeUserPassword(UserChangePasswordDto dto) {
         userRepository.findByLogin(dto.login())
                 .map(user -> {
-                    if (user.getPassword().equals(dto.oldPassword())) {
-                        user.setPassword(dto.newPassword());
+                    if (passwordEncoder.matches(dto.oldPassword(), user.getPassword())) {
+                        user.setPassword(passwordEncoder.encode(dto.newPassword()));
                         return user;
                     }
                     throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
                 })
                 .map(userRepository::save)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 
     @Override

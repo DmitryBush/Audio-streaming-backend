@@ -39,8 +39,6 @@ public class SecurityService {
     }
 
     public void changePassword(UserChangePasswordDto changePasswordDto) {
-        UserChangePasswordDto encryptedUserCredentials = new UserChangePasswordDto(changePasswordDto.login(),
-                passwordEncoder.encode(changePasswordDto.oldPassword()), passwordEncoder.encode(changePasswordDto.newPassword()));
-        userService.changeUserPassword(encryptedUserCredentials);
+        userService.changeUserPassword(changePasswordDto);
     }
 }

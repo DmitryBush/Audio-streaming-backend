@@ -30,6 +30,6 @@ public class SecurityController {
     @PostMapping("/api/v1/change-password")
     public ResponseEntity<Void> changePassword(@RequestBody UserChangePasswordDto changePasswordDto) {
         securityService.changePassword(changePasswordDto);
-        return new ResponseEntity<>(HttpStatus.ACCEPTED);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }
