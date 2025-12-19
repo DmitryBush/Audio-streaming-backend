@@ -1,5 +1,6 @@
 package com.bush.user.controller;
 
+import com.bush.user.dto.UserChangePasswordDto;
 import com.bush.user.dto.UserCreateDto;
 import com.bush.user.dto.UserLoginDto;
 import com.bush.user.service.SecurityService;
@@ -24,5 +25,11 @@ public class SecurityController {
     public ResponseEntity<Void> register(@RequestBody UserCreateDto createDto) {
         securityService.register(createDto);
         return new ResponseEntity<>(HttpStatus.CREATED);
+    }
+
+    @PostMapping("/api/v1/change-password")
+    public ResponseEntity<Void> changePassword(@RequestBody UserChangePasswordDto changePasswordDto) {
+        securityService.changePassword(changePasswordDto);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }

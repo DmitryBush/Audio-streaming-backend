@@ -1,5 +1,6 @@
 package com.bush.user.service.user;
 
+import com.bush.user.dto.UserChangePasswordDto;
 import com.bush.user.dto.UserCreateDto;
 import com.bush.user.entity.Role;
 import com.bush.user.entity.RoleEnum;
@@ -9,10 +10,12 @@ import com.bush.user.service.user.mapper.UserCreateMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -26,6 +29,8 @@ import java.util.Optional;
 public class UserService implements UserDetailsService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+
+    private final PasswordEncoder passwordEncoder;
 
     private final UserCreateMapper userCreateMapper;
 
@@ -42,28 +47,54 @@ public class UserService implements UserDetailsService {
     }
 
     @Transactional("userTransactionManager")
-    public void updateUserInfo(String userId, UserCreateDto dto) {
+    public void updateUserRole(String userId, Short roleId) {
         userRepository.findById(userId)
                 .map(user -> {
-                    Optional.ofNullable(dto.roleId())
+                    Optional.ofNullable(roleId)
+                            .map(id -> {
+                                if (user.getRole().getRoleName().equals(RoleEnum.ADMIN)
+                                        && userRepository.countUserWithRole(RoleEnum.ADMIN) <= 1) {
+                                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+                                }
+                                return id;
+                            })
                             .map(roleRepository::getReferenceById)
                             .ifPresent(user::setRole);
                     return user;
-                });
+                })
+                .map(userRepository::save);
     }
 
     @Transactional("userTransactionManager")
     public void deleteUser(String userId) {
+        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getDetails();
         userRepository.findById(userId)
                 .ifPresentOrElse(user -> {
                     if (user.getRole().getRoleName().equals(RoleEnum.ADMIN)
                             && userRepository.countUserWithRole(RoleEnum.ADMIN) <= 1) {
                         throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+                    } else if (!userDetails.getUsername().equals(user.getLogin())
+                            && !userDetails.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_" + RoleEnum.ADMIN.name()))) {
+                        throw new ResponseStatusException(HttpStatus.FORBIDDEN);
                     }
                     userRepository.delete(user);
                 }, () -> {
                     throw new ResponseStatusException(HttpStatus.NOT_FOUND);
                 });
+    }
+
+    @Transactional("userTransactionManager")
+    public void changeUserPassword(UserChangePasswordDto dto) {
+        userRepository.findByLogin(dto.login())
+                .map(user -> {
+                    if (passwordEncoder.matches(dto.oldPassword(), user.getPassword())) {
+                        user.setPassword(passwordEncoder.encode(dto.newPassword()));
+                        return user;
+                    }
+                    throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+                })
+                .map(userRepository::save)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 
     @Override
