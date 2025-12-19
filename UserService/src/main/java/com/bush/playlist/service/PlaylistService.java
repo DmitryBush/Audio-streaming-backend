@@ -60,7 +60,7 @@ public class PlaylistService {
     }
 
     public Page<PlaylistReadDto> findAllUserPlaylists(String userId, Pageable pageable) {
-        return playlistRepository.findByUserId(userId, pageable)
+        return playlistRepository.findByCreatorId(userId, pageable)
                 .map(readMapper::mapToPlaylistReadDto);
     }
 

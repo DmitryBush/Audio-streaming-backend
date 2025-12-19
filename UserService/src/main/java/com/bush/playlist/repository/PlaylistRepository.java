@@ -10,7 +10,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface PlaylistRepository extends JpaRepository<Playlist, Long> {
     
-    Page<Playlist> findByUserId(String userId, Pageable pageable);
+    Page<Playlist> findByCreatorId(String userId, Pageable pageable);
 
     Page<PlaylistTracks> findTracksByPlaylistId(Long playlistId, Pageable pageable);
 }
