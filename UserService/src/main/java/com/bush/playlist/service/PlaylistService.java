@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -27,7 +26,7 @@ public class PlaylistService {
     private final PlaylistCreateMapper createMapper;
     private final PlaylistReadMapper readMapper;
 
-    @Transactional
+    @Transactional("playlistTransactionManager")
     public PlaylistReadDto createPlaylistInformation(PlaylistCreateDto createDto) {
         return Optional.ofNullable(createDto)
                 .map(createMapper::mapToPlaylist)
@@ -36,7 +35,7 @@ public class PlaylistService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST));
     }
 
-    @Transactional
+    @Transactional("playlistTransactionManager")
     public PlaylistReadDto updatePlaylistInformation(Long id, PlaylistCreateDto createDto) {
         return playlistRepository.findById(id)
                 .map(playlist -> {
@@ -48,7 +47,7 @@ public class PlaylistService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 
-    @Transactional
+    @Transactional("playlistTransactionManager")
     public void deletePlaylistInformation(Long playlistId) {
         Optional.ofNullable(playlistId)
                 .ifPresentOrElse(id -> {
@@ -60,13 +59,12 @@ public class PlaylistService {
                 }, () ->  { throw new ResponseStatusException(HttpStatus.BAD_REQUEST); });
     }
 
-    public List<PlaylistReadDto> findPlaylistByUserId(String userId) {
-        return playlistRepository.findByUserId(userId).stream()
-                .map(readMapper::mapToPlaylistReadDto)
-                .toList();
+    public Page<PlaylistReadDto> findAllUserPlaylists(String userId, Pageable pageable) {
+        return playlistRepository.findByUserId(userId, pageable)
+                .map(readMapper::mapToPlaylistReadDto);
     }
 
-    @Transactional
+    @Transactional("playlistTransactionManager")
     public void addTrackToPlaylist(Long playlistId, Long trackId) {
         playlistRepository.findById(playlistId)
                 .map(playlist -> {
@@ -77,7 +75,7 @@ public class PlaylistService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 
-    @Transactional
+    @Transactional("playlistTransactionManager")
     public void removeTrackFromPlaylist(Long playlistId, Long trackId) {
         playlistRepository.findById(playlistId)
                 .map(playlist -> {
@@ -94,7 +92,7 @@ public class PlaylistService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 
-    public Page<Long> findPlaylistTracks(Long playlistId, Pageable pageable) {
+    public Page<Long> findPlaylistTracksById(Long playlistId, Pageable pageable) {
         return playlistRepository.findTracksByPlaylistId(playlistId, pageable)
                 .map(playlistTracks -> playlistTracks.getId().getTrackId());
     }
