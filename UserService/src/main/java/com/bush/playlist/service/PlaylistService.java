@@ -8,15 +8,19 @@ import com.bush.playlist.repository.PlaylistRepository;
 import com.bush.playlist.service.mapper.PlaylistCreateMapper;
 import com.bush.playlist.service.mapper.PlaylistReadMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -28,17 +32,26 @@ public class PlaylistService {
 
     @Transactional("playlistTransactionManager")
     public PlaylistReadDto createPlaylistInformation(PlaylistCreateDto createDto) {
+        String userId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return Optional.ofNullable(createDto)
                 .map(createMapper::mapToPlaylist)
+                .map(playlist -> {
+                    playlist.setCreatorId(userId);
+                    return playlist;
+                })
                 .map(playlistRepository::save)
                 .map(readMapper::mapToPlaylistReadDto)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST));
     }
 
     @Transactional("playlistTransactionManager")
-    public PlaylistReadDto updatePlaylistInformation(Long id, PlaylistCreateDto createDto) {
-        return playlistRepository.findById(id)
+    public PlaylistReadDto updatePlaylistInformation(Long playlistId, PlaylistCreateDto createDto) {
+        String userId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return playlistRepository.findById(playlistId)
                 .map(playlist -> {
+                    if (!playlist.getCreatorId().equals(userId)) {
+                        throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+                    }
                     playlist.setName(createDto.name());
                     return playlist;
                 })
@@ -49,14 +62,20 @@ public class PlaylistService {
 
     @Transactional("playlistTransactionManager")
     public void deletePlaylistInformation(Long playlistId) {
+        String userId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Optional.ofNullable(playlistId)
-                .ifPresentOrElse(id -> {
-                    if (!playlistRepository.existsById(id)) {
-                        throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-                    }
-                    playlistRepository.deleteById(id);
-                    throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-                }, () ->  { throw new ResponseStatusException(HttpStatus.BAD_REQUEST); });
+                .map(playlistRepository::findById)
+                .ifPresentOrElse(optionalPlaylist -> optionalPlaylist
+                        .ifPresentOrElse(playlist -> {
+                            if (!playlist.getCreatorId().equals(userId)) {
+                                throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+                            }
+                            playlistRepository.deleteById(playlist.getPlaylistId());
+                        }, () -> {
+                            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+                        }), () -> {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+                });
     }
 
     public Page<PlaylistReadDto> findAllUserPlaylists(String userId, Pageable pageable) {
@@ -66,8 +85,12 @@ public class PlaylistService {
 
     @Transactional("playlistTransactionManager")
     public void addTrackToPlaylist(Long playlistId, Long trackId) {
+        String userId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         playlistRepository.findById(playlistId)
                 .map(playlist -> {
+                    if (!playlist.getCreatorId().equals(userId)) {
+                        throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+                    }
                     playlist.getTracks().add(new PlaylistTracks(new PlaylistTracksId(playlist, trackId)));
                     return playlist;
                 })
@@ -77,8 +100,12 @@ public class PlaylistService {
 
     @Transactional("playlistTransactionManager")
     public void removeTrackFromPlaylist(Long playlistId, Long trackId) {
+        String userId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         playlistRepository.findById(playlistId)
                 .map(playlist -> {
+                    if (!playlist.getCreatorId().equals(userId)) {
+                        throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+                    }
                     playlist.getTracks().remove(new PlaylistTracks(new PlaylistTracksId(playlist, trackId)));
                     return playlist;
                 })
