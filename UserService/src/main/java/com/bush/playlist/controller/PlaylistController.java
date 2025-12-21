@@ -43,7 +43,7 @@ public class PlaylistController {
     @DeleteMapping("/{playlistId}")
     public ResponseEntity<Void> deletePlaylist(@PathVariable Long playlistId) {
         playlistService.deletePlaylistInformation(playlistId);
-        return new ResponseEntity<>(HttpStatus.ACCEPTED);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @GetMapping("/{playlistId}")
@@ -60,7 +60,7 @@ public class PlaylistController {
     @DeleteMapping("/{playlistId}/tracks/{trackId}")
     public ResponseEntity<Void> deleteTrackFromPlaylist(@PathVariable Long playlistId, @PathVariable Long trackId) {
         playlistService.removeTrackFromPlaylist(playlistId, trackId);
-        return new ResponseEntity<>(HttpStatus.ACCEPTED);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @GetMapping("/{playlistId}/tracks")

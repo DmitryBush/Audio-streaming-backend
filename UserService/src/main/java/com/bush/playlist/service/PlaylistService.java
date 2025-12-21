@@ -91,7 +91,7 @@ public class PlaylistService {
                     if (!playlist.getCreatorId().equals(userId)) {
                         throw new ResponseStatusException(HttpStatus.FORBIDDEN);
                     }
-                    playlist.getTracks().add(new PlaylistTracks(new PlaylistTracksId(playlist, trackId)));
+                    playlist.getTracks().add(new PlaylistTracks(playlist, trackId));
                     return playlist;
                 })
                 .map(playlistRepository::saveAndFlush)
@@ -106,7 +106,7 @@ public class PlaylistService {
                     if (!playlist.getCreatorId().equals(userId)) {
                         throw new ResponseStatusException(HttpStatus.FORBIDDEN);
                     }
-                    playlist.getTracks().remove(new PlaylistTracks(new PlaylistTracksId(playlist, trackId)));
+                    playlist.getTracks().remove(new PlaylistTracks(playlist, trackId));
                     return playlist;
                 })
                 .map(playlistRepository::saveAndFlush)
@@ -121,6 +121,6 @@ public class PlaylistService {
 
     public Page<Long> findPlaylistTracksById(Long playlistId, Pageable pageable) {
         return playlistRepository.findTracksByPlaylistId(playlistId, pageable)
-                .map(playlistTracks -> playlistTracks.getId().getTrackId());
+                .map(playlistTracks -> playlistTracks.getTrackId());
     }
 }

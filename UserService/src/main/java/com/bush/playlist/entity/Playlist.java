@@ -27,6 +27,6 @@ public class Playlist {
     @Column(name = "creator_id", nullable = false)
     private String creatorId;
 
-    @OneToMany(mappedBy = "id.playlist")
+    @OneToMany(mappedBy = "playlist", cascade = CascadeType.ALL)
     private List<PlaylistTracks> tracks = new ArrayList<>();
 }
