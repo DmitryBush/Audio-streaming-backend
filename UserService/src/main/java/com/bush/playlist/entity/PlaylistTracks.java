@@ -19,8 +19,6 @@ import lombok.NoArgsConstructor;
 @Table(name = "playlist_tracks")
 @IdClass(PlaylistTracksId.class)
 public class PlaylistTracks {
-//    @EmbeddedId
-//    private PlaylistTracksId id;
     @Id
     @ManyToOne
     @JoinColumn(name = "playlist_id", nullable = false)

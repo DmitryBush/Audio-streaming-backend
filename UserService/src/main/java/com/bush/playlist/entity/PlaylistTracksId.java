@@ -18,9 +18,4 @@ import lombok.NoArgsConstructor;
 public class PlaylistTracksId {
     private Long playlist;
     private Long trackId;
-//    @ManyToOne
-//    @JoinColumn(name = "playlist_id", nullable = false)
-//    private Playlist playlist;
-//    @Column(name = "track_id", nullable = false)
-//    private Long trackId;
 }
