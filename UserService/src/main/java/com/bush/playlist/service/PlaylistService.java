@@ -3,7 +3,6 @@ package com.bush.playlist.service;
 import com.bush.playlist.dto.PlaylistCreateDto;
 import com.bush.playlist.dto.PlaylistReadDto;
 import com.bush.playlist.entity.PlaylistTracks;
-import com.bush.playlist.entity.PlaylistTracksId;
 import com.bush.playlist.repository.PlaylistRepository;
 import com.bush.playlist.service.mapper.PlaylistCreateMapper;
 import com.bush.playlist.service.mapper.PlaylistReadMapper;
@@ -13,7 +12,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -121,6 +119,6 @@ public class PlaylistService {
 
     public Page<Long> findPlaylistTracksById(Long playlistId, Pageable pageable) {
         return playlistRepository.findTracksByPlaylistId(playlistId, pageable)
-                .map(playlistTracks -> playlistTracks.getTrackId());
+                .map(PlaylistTracks::getTrackId);
     }
 }

@@ -8,7 +8,7 @@ import org.mapstruct.MappingConstants;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface PlaylistCreateMapper {
-    @Mapping(target = "tracks", expression = "java(java.util.Collections.emptyList())")
+    @Mapping(target = "tracks", expression = "java(java.util.Collections.emptySet())")
     @Mapping(target = "playlistId", ignore = true)
     @Mapping(target = "creatorId", ignore = true)
     Playlist mapToPlaylist(PlaylistCreateDto createDto);

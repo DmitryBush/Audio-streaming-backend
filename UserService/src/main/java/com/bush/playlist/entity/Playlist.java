@@ -7,7 +7,9 @@ import lombok.AllArgsConstructor;
 import jakarta.persistence.*;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "playlists")
@@ -28,5 +30,5 @@ public class Playlist {
     private String creatorId;
 
     @OneToMany(mappedBy = "playlist", cascade = CascadeType.ALL)
-    private List<PlaylistTracks> tracks = new ArrayList<>();
+    private Set<PlaylistTracks> tracks = new HashSet<>();
 }
