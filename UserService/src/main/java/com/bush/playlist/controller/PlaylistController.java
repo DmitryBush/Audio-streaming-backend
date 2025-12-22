@@ -12,7 +12,7 @@ import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -32,14 +32,14 @@ public class PlaylistController {
     private final PagedResourcesAssembler<PlaylistReadDto> playlistAssembler;
 
     @PostMapping
-    public ResponseEntity<PlaylistReadDto> createPlaylist(@RequestBody PlaylistCreateDto createDto) {
+    public ResponseEntity<PlaylistReadDto> createPlaylist(@RequestBody @Validated PlaylistCreateDto createDto) {
         String userId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return new ResponseEntity<>(playlistService.createPlaylistInformation(createDto, userId), HttpStatus.CREATED);
     }
 
     @PutMapping("/{playlistId}")
     public ResponseEntity<PlaylistReadDto> updatePlaylist(@PathVariable Long playlistId,
-                                                          @RequestBody PlaylistCreateDto createDto) {
+                                                          @RequestBody @Validated PlaylistCreateDto createDto) {
         String userId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return ResponseEntity.ok(playlistService.updatePlaylistInformation(playlistId, createDto, userId));
     }
@@ -75,10 +75,10 @@ public class PlaylistController {
     }
 
     @GetMapping
-    public ResponseEntity<PagedModel<EntityModel<PlaylistReadDto>>> findUserPlaylists(UserDetails userDetails,
-                                                                                      Pageable pageable) {
+    public ResponseEntity<PagedModel<EntityModel<PlaylistReadDto>>> findUserPlaylists(Pageable pageable) {
+        String userId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         PagedModel<EntityModel<PlaylistReadDto>> playlists =
-                playlistAssembler.toModel(playlistService.findAllUserPlaylists(userDetails.getUsername(), pageable));
+                playlistAssembler.toModel(playlistService.findAllUserPlaylists(userId, pageable));
         return ResponseEntity.ok(playlists);
     }
 }
