@@ -2,12 +2,17 @@ package com.bush.playlist.service;
 
 import com.bush.playlist.dto.PlaylistCreateDto;
 import com.bush.playlist.dto.PlaylistReadDto;
+import com.bush.playlist.dto.PlaylistTrackDto;
 import com.bush.playlist.entity.PlaylistTracks;
 import com.bush.playlist.repository.PlaylistRepository;
+import com.bush.playlist.repository.PlaylistTracksRepository;
 import com.bush.playlist.service.mapper.PlaylistCreateMapper;
 import com.bush.playlist.service.mapper.PlaylistReadMapper;
+import com.bush.playlist.service.mapper.PlaylistTrackReadMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -21,16 +26,18 @@ import java.util.Optional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
+@Transactional(transactionManager = "playlistTransactionManager", readOnly = true)
 public class PlaylistService {
     private final PlaylistRepository playlistRepository;
+    private final PlaylistTracksRepository playlistTracksRepository;
 
     private final PlaylistCreateMapper createMapper;
     private final PlaylistReadMapper readMapper;
 
+    private final PlaylistTrackReadMapper playlistTrackReadMapper;
+
     @Transactional("playlistTransactionManager")
-    public PlaylistReadDto createPlaylistInformation(PlaylistCreateDto createDto) {
-        String userId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    public PlaylistReadDto createPlaylistInformation(PlaylistCreateDto createDto, String userId) {
         return Optional.ofNullable(createDto)
                 .map(createMapper::mapToPlaylist)
                 .map(playlist -> {
@@ -43,8 +50,8 @@ public class PlaylistService {
     }
 
     @Transactional("playlistTransactionManager")
-    public PlaylistReadDto updatePlaylistInformation(Long playlistId, PlaylistCreateDto createDto) {
-        String userId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    @CacheEvict(key = "#playlistId", cacheNames = "playlists")
+    public PlaylistReadDto updatePlaylistInformation(Long playlistId, PlaylistCreateDto createDto, String userId) {
         return playlistRepository.findById(playlistId)
                 .map(playlist -> {
                     if (!playlist.getCreatorId().equals(userId)) {
@@ -59,8 +66,8 @@ public class PlaylistService {
     }
 
     @Transactional("playlistTransactionManager")
-    public void deletePlaylistInformation(Long playlistId) {
-        String userId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    @CacheEvict(key = "#playlistId", cacheNames = "playlists")
+    public void deletePlaylistInformation(Long playlistId, String userId) {
         Optional.ofNullable(playlistId)
                 .map(playlistRepository::findById)
                 .ifPresentOrElse(optionalPlaylist -> optionalPlaylist
@@ -111,14 +118,15 @@ public class PlaylistService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 
+    @Cacheable(key = "#playlistId", cacheNames = "playlists")
     public PlaylistReadDto findPlaylistById(Long playlistId) {
         return playlistRepository.findById(playlistId)
                 .map(readMapper::mapToPlaylistReadDto)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 
-    public Page<Long> findPlaylistTracksById(Long playlistId, Pageable pageable) {
-        return playlistRepository.findTracksByPlaylistId(playlistId, pageable)
-                .map(PlaylistTracks::getTrackId);
+    public Page<PlaylistTrackDto> findPlaylistTracksById(Long playlistId, Pageable pageable) {
+        return playlistTracksRepository.findByPlaylistPlaylistId(playlistId, pageable)
+                .map(playlistTrackReadMapper::mapToPlaylistTrackDto);
     }
 }

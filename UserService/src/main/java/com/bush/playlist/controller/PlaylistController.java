@@ -2,6 +2,7 @@ package com.bush.playlist.controller;
 
 import com.bush.playlist.dto.PlaylistCreateDto;
 import com.bush.playlist.dto.PlaylistReadDto;
+import com.bush.playlist.dto.PlaylistTrackDto;
 import com.bush.playlist.service.PlaylistService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -10,6 +11,7 @@ import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,23 +28,26 @@ import org.springframework.web.bind.annotation.RestController;
 public class PlaylistController {
     private final PlaylistService playlistService;
 
-    private final PagedResourcesAssembler<Long> trackAssembler;
+    private final PagedResourcesAssembler<PlaylistTrackDto> trackAssembler;
     private final PagedResourcesAssembler<PlaylistReadDto> playlistAssembler;
 
     @PostMapping
     public ResponseEntity<PlaylistReadDto> createPlaylist(@RequestBody PlaylistCreateDto createDto) {
-        return new ResponseEntity<>(playlistService.createPlaylistInformation(createDto), HttpStatus.CREATED);
+        String userId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return new ResponseEntity<>(playlistService.createPlaylistInformation(createDto, userId), HttpStatus.CREATED);
     }
 
     @PutMapping("/{playlistId}")
     public ResponseEntity<PlaylistReadDto> updatePlaylist(@PathVariable Long playlistId,
                                                           @RequestBody PlaylistCreateDto createDto) {
-        return ResponseEntity.ok(playlistService.updatePlaylistInformation(playlistId, createDto));
+        String userId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return ResponseEntity.ok(playlistService.updatePlaylistInformation(playlistId, createDto, userId));
     }
 
     @DeleteMapping("/{playlistId}")
     public ResponseEntity<Void> deletePlaylist(@PathVariable Long playlistId) {
-        playlistService.deletePlaylistInformation(playlistId);
+        String userId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        playlistService.deletePlaylistInformation(playlistId, userId);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
@@ -64,8 +69,8 @@ public class PlaylistController {
     }
 
     @GetMapping("/{playlistId}/tracks")
-    public ResponseEntity<PagedModel<EntityModel<Long>>> findPlaylistTracks(@PathVariable Long playlistId, Pageable pageable) {
-        PagedModel<EntityModel<Long>> tracks = trackAssembler.toModel(playlistService.findPlaylistTracksById(playlistId, pageable));
+    public ResponseEntity<PagedModel<EntityModel<PlaylistTrackDto>>> findPlaylistTracks(@PathVariable Long playlistId, Pageable pageable) {
+        PagedModel<EntityModel<PlaylistTrackDto>> tracks = trackAssembler.toModel(playlistService.findPlaylistTracksById(playlistId, pageable));
         return ResponseEntity.ok(tracks);
     }
 
