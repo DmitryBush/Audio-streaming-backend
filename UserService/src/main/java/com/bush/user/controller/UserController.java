@@ -1,6 +1,8 @@
 package com.bush.user.controller;
 
 import com.bush.user.service.user.UserService;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +20,7 @@ public class UserController {
     private final UserService userService;
 
     @PatchMapping("/{id}/role")
-    public ResponseEntity<Void> updateUser(@PathVariable String id, @RequestBody Short roleId) {
+    public ResponseEntity<Void> updateUser(@PathVariable String id, @RequestBody @Valid @NotNull Short roleId) {
         userService.updateUserRole(id, roleId);
         return new ResponseEntity<>(HttpStatus.OK);
     }

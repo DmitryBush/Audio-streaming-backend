@@ -7,6 +7,7 @@ import com.bush.user.service.SecurityService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -17,18 +18,18 @@ public class SecurityController {
     private final SecurityService securityService;
 
     @PostMapping("/api/v1/login")
-    public ResponseEntity<String> login(@RequestBody UserLoginDto loginDto) {
+    public ResponseEntity<String> login(@RequestBody @Validated UserLoginDto loginDto) {
         return ResponseEntity.ok(securityService.logIn(loginDto));
     }
 
     @PostMapping("/api/v1/register")
-    public ResponseEntity<Void> register(@RequestBody UserCreateDto createDto) {
+    public ResponseEntity<Void> register(@RequestBody @Validated UserCreateDto createDto) {
         securityService.register(createDto);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
     @PostMapping("/api/v1/change-password")
-    public ResponseEntity<Void> changePassword(@RequestBody UserChangePasswordDto changePasswordDto) {
+    public ResponseEntity<Void> changePassword(@RequestBody @Validated UserChangePasswordDto changePasswordDto) {
         securityService.changePassword(changePasswordDto);
         return new ResponseEntity<>(HttpStatus.OK);
     }
