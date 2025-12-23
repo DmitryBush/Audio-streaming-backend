@@ -9,6 +9,7 @@ import com.bush.user.repository.UserRepository;
 import com.bush.user.service.user.mapper.UserCreateMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -67,14 +69,15 @@ public class UserService implements UserDetailsService {
 
     @Transactional("userTransactionManager")
     public void deleteUser(String userId) {
-        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getDetails();
+        String userDetails = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Collection<? extends GrantedAuthority> authorities = SecurityContextHolder.getContext().getAuthentication().getAuthorities();
         userRepository.findById(userId)
                 .ifPresentOrElse(user -> {
                     if (user.getRole().getRoleName().equals(RoleEnum.ADMIN)
                             && userRepository.countUserWithRole(RoleEnum.ADMIN) <= 1) {
                         throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
-                    } else if (!userDetails.getUsername().equals(user.getLogin())
-                            && !userDetails.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_" + RoleEnum.ADMIN.name()))) {
+                    } else if (!userDetails.equals(user.getLogin())
+                            && !authorities.contains(new SimpleGrantedAuthority("ROLE_" + RoleEnum.ADMIN.name()))) {
                         throw new ResponseStatusException(HttpStatus.FORBIDDEN);
                     }
                     userRepository.delete(user);
