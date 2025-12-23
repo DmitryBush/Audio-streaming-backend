@@ -1,11 +1,10 @@
 package com.bush.user.dto;
 
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import org.hibernate.validator.constraints.Length;
 
-public record UserCreateDto(@NotBlank @Min(4) @Max(32) String login,
-                            @NotBlank @Min(8) @Max(255) String password,
+public record UserCreateDto(@NotBlank @Length(min = 4, max = 32) String login,
+                            @NotBlank @Length(min = 8, max = 255) String password,
                             @NotNull Short roleId) {
 }
