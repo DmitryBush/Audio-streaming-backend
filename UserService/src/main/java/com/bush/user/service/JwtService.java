@@ -1,6 +1,8 @@
 package com.bush.user.service;
 
+import com.bush.user.config.security.SecurityConstants;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
@@ -10,6 +12,7 @@ import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.convert.DurationUnit;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -32,6 +35,8 @@ public class JwtService {
     @DurationUnit(ChronoUnit.MILLIS)
     private Duration jwtExpiration;
 
+    private final RedisTemplate<String, String> blackListTokenRedisTemplate;
+
     public String generateToken(UserDetails userDetails) {
         List<String> authorityList = userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
@@ -50,6 +55,10 @@ public class JwtService {
     }
 
     private Jws<Claims> parseSignedToken(String jwtToken) {
+        if (jwtToken.equals(blackListTokenRedisTemplate.opsForValue()
+                .get(SecurityConstants.BLACKLIST_KEY_PREFIX.getValue() + jwtToken))) {
+            throw new IllegalArgumentException("Current token is located in blacklist");
+        }
         JwtParser parser = Jwts.parser()
                 .verifyWith((SecretKey) getSigningKey())
                 .build();
