@@ -1,0 +1,5 @@
+databaseChangeLog:
+  - include:
+      file: liquibase/user/user-structure.sql
+  - include:
+      file: liquibase/user/changelog-1.0.1.yaml
