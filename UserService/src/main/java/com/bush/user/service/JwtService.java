@@ -95,7 +95,7 @@ public class JwtService {
                 blackListTokenRedisTemplate.opsForValue()
                         .set(SecurityConstants.BLACKLIST_KEY_PREFIX.getValue() + jwtToken, jwtToken);
                 blackListTokenRedisTemplate.expire(SecurityConstants.BLACKLIST_KEY_PREFIX.getValue() + jwtToken,
-                        15, TimeUnit.MINUTES);
+                        refreshTokenExpiration.toMillis(), TimeUnit.MINUTES);
                 throw new IllegalArgumentException("Password version does not match the valid one");
             }
         }
