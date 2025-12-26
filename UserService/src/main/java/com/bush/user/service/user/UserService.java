@@ -2,11 +2,13 @@ package com.bush.user.service.user;
 
 import com.bush.user.dto.UserChangePasswordDto;
 import com.bush.user.dto.UserCreateDto;
+import com.bush.user.dto.UserReadDto;
 import com.bush.user.entity.Role;
 import com.bush.user.entity.RoleEnum;
 import com.bush.user.repository.RoleRepository;
 import com.bush.user.repository.UserRepository;
 import com.bush.user.service.user.mapper.UserCreateMapper;
+import com.bush.user.service.user.mapper.UserReadMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.GrantedAuthority;
@@ -35,6 +37,7 @@ public class UserService implements UserDetailsService {
     private final PasswordEncoder passwordEncoder;
 
     private final UserCreateMapper userCreateMapper;
+    private final UserReadMapper userReadMapper;
 
     @Transactional("userTransactionManager")
     public void createUser(UserCreateDto dto) {
@@ -92,7 +95,7 @@ public class UserService implements UserDetailsService {
                 .map(user -> {
                     if (passwordEncoder.matches(dto.oldPassword(), user.getPassword())) {
                         user.setPassword(passwordEncoder.encode(dto.newPassword()));
-                        user.setVersion(user.getVersion() + 1);
+                        user.setPasswordVersion(user.getPasswordVersion() + 1);
                         return user;
                     }
                     throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
@@ -105,9 +108,15 @@ public class UserService implements UserDetailsService {
         return Optional.ofNullable(username)
                 .map(userRepository::findByLogin)
                 .map(optionalUser -> optionalUser
-                        .map(user -> user.getVersion().equals(passwordVersion))
+                        .map(user -> user.getPasswordVersion().equals(passwordVersion))
                         .orElseThrow(IllegalArgumentException::new))
                 .orElseThrow(IllegalArgumentException::new);
+    }
+
+    public UserReadDto findUserByLogin(String login) {
+        return userRepository.findByLogin(login)
+                .map(userReadMapper::mapToUserReadDto)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 
     @Override

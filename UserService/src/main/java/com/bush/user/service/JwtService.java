@@ -32,11 +32,14 @@ public class JwtService {
     private final RedisTemplate<String, String> blackListTokenRedisTemplate;
     @Value("${spring.security.jwt.secret-key}")
     private String signingKey;
-    @Value("${spring.security.jwt.expiration}")
-    @DurationUnit(ChronoUnit.MILLIS)
-    private Duration jwtExpiration;
+    @Value("${spring.security.jwt.access-token-expiration}")
+    @DurationUnit(ChronoUnit.HOURS)
+    private Duration accessTokenExpiration;
+    @Value("${spring.security.jwt.refresh-token-expiration}")
+    @DurationUnit(ChronoUnit.DAYS)
+    private Duration refreshTokenExpiration;
 
-    public String generateToken(UserDetails userDetails) {
+    public String generateAccessToken(UserDetails userDetails) {
         List<String> authorityList = userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .toList();
@@ -44,7 +47,21 @@ public class JwtService {
                 .claim("role", authorityList)
                 .subject(userDetails.getUsername())
                 .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + jwtExpiration.toMillis()))
+                .expiration(new Date(System.currentTimeMillis() + accessTokenExpiration.toMillis()))
+                .signWith(getSigningKey())
+                .compact();
+    }
+
+    public String generateRefreshToken(UserDetails userDetails) {
+        List<String> authorityList = userDetails.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .toList();
+        return Jwts.builder()
+                .claim("role", authorityList)
+                .claim("pwd_version", userService.findUserByLogin(userDetails.getUsername()).passwordVersion())
+                .subject(userDetails.getUsername())
+                .issuedAt(new Date(System.currentTimeMillis()))
+                .expiration(new Date(System.currentTimeMillis() + refreshTokenExpiration.toMillis()))
                 .signWith(getSigningKey())
                 .compact();
     }
@@ -72,8 +89,8 @@ public class JwtService {
     }
 
     private void checkPasswordVersionValidity(String jwtToken, Jws<Claims> claimsJws) {
-        if (claimsJws.getPayload().containsKey("version")) {
-            Long passwordVersion = claimsJws.getPayload().get("version", Long.class);
+        if (claimsJws.getPayload().containsKey("pwd_version")) {
+            Long passwordVersion = claimsJws.getPayload().get("pwd_version", Long.class);
             if (!userService.checkEqualPasswordVersion(claimsJws.getPayload().getSubject(), passwordVersion)) {
                 blackListTokenRedisTemplate.opsForValue()
                         .set(SecurityConstants.BLACKLIST_KEY_PREFIX.getValue() + jwtToken, jwtToken);

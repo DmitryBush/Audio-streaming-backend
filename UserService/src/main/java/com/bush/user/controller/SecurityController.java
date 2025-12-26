@@ -1,5 +1,6 @@
 package com.bush.user.controller;
 
+import com.bush.user.dto.JwtTokenDto;
 import com.bush.user.dto.UserChangePasswordDto;
 import com.bush.user.dto.UserCreateDto;
 import com.bush.user.dto.UserLoginDto;
@@ -12,13 +13,15 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.net.URI;
+
 @RestController
 @RequiredArgsConstructor
 public class SecurityController {
     private final SecurityService securityService;
 
     @PostMapping("/api/v1/login")
-    public ResponseEntity<String> login(@RequestBody @Validated UserLoginDto loginDto) {
+    public ResponseEntity<JwtTokenDto> login(@RequestBody @Validated UserLoginDto loginDto) {
         return ResponseEntity.ok(securityService.logIn(loginDto));
     }
 
@@ -31,6 +34,13 @@ public class SecurityController {
     @PostMapping("/api/v1/change-password")
     public ResponseEntity<Void> changePassword(@RequestBody @Validated UserChangePasswordDto changePasswordDto) {
         securityService.changePassword(changePasswordDto);
-        return new ResponseEntity<>(HttpStatus.OK);
+        return ResponseEntity.status(HttpStatus.FOUND)
+                .location(URI.create("/api/v1/logout"))
+                .build();
+    }
+
+    @PostMapping("/api/v1/refresh-token")
+    public ResponseEntity<JwtTokenDto> refreshToken() {
+        return ResponseEntity.ok(securityService.refreshToken());
     }
 }

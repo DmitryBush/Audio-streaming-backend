@@ -46,7 +46,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(registry -> registry
                         .requestMatchers("/actuator/**", "/error").permitAll()
                         .requestMatchers("/api/*/login", "/api/*/register", "/api/*/logout").permitAll()
-                        .requestMatchers("/api/*/change-password").fullyAuthenticated()
+                        .requestMatchers("/api/*/change-password", "/api/*/refresh-token").fullyAuthenticated()
                         .requestMatchers(HttpMethod.PATCH, "/api/*/users/*/role").hasRole(RoleEnum.ADMIN.name())
                         .requestMatchers("/api/*/users/**").authenticated()
                         .requestMatchers("/api/*/security/**").hasRole(RoleEnum.ADMIN.name())
