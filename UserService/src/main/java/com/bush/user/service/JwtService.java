@@ -1,15 +1,17 @@
 package com.bush.user.service;
 
+import com.bush.user.config.security.SecurityConstants;
+import com.bush.user.service.user.UserService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
-import io.jsonwebtoken.io.Encoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.convert.DurationUnit;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -18,21 +20,26 @@ import javax.crypto.SecretKey;
 import java.security.Key;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
 public class JwtService {
+    private final UserService userService;
+    private final RedisTemplate<String, String> blackListTokenRedisTemplate;
     @Value("${spring.security.jwt.secret-key}")
     private String signingKey;
-    @Value("${spring.security.jwt.expiration}")
-    @DurationUnit(ChronoUnit.MILLIS)
-    private Duration jwtExpiration;
+    @Value("${spring.security.jwt.access-token-expiration}")
+    @DurationUnit(ChronoUnit.HOURS)
+    private Duration accessTokenExpiration;
+    @Value("${spring.security.jwt.refresh-token-expiration}")
+    @DurationUnit(ChronoUnit.DAYS)
+    private Duration refreshTokenExpiration;
 
-    public String generateToken(UserDetails userDetails) {
+    public String generateAccessToken(UserDetails userDetails) {
         List<String> authorityList = userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .toList();
@@ -40,9 +47,28 @@ public class JwtService {
                 .claim("role", authorityList)
                 .subject(userDetails.getUsername())
                 .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + jwtExpiration.toMillis()))
+                .expiration(new Date(System.currentTimeMillis() + accessTokenExpiration.toMillis()))
                 .signWith(getSigningKey())
                 .compact();
+    }
+
+    public String generateRefreshToken(UserDetails userDetails) {
+        List<String> authorityList = userDetails.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .toList();
+        return Jwts.builder()
+                .claim("role", authorityList)
+                .claim("pwd_version", userService.findUserByLogin(userDetails.getUsername()).passwordVersion())
+                .subject(userDetails.getUsername())
+                .issuedAt(new Date(System.currentTimeMillis()))
+                .expiration(new Date(System.currentTimeMillis() + refreshTokenExpiration.toMillis()))
+                .signWith(getSigningKey())
+                .compact();
+    }
+
+    private Key getSigningKey() {
+        byte[] keyBytes = Decoders.BASE64.decode(signingKey);
+        return Keys.hmacShaKeyFor(keyBytes);
     }
 
     public Map<String, Object> getMapPayload(String jwtToken) {
@@ -50,14 +76,28 @@ public class JwtService {
     }
 
     private Jws<Claims> parseSignedToken(String jwtToken) {
+        if (jwtToken.equals(blackListTokenRedisTemplate.opsForValue()
+                .get(SecurityConstants.BLACKLIST_KEY_PREFIX.getValue() + jwtToken))) {
+            throw new IllegalArgumentException("Current token is located in blacklist");
+        }
         JwtParser parser = Jwts.parser()
                 .verifyWith((SecretKey) getSigningKey())
                 .build();
-        return parser.parseSignedClaims(jwtToken);
+        Jws<Claims> claimsJws = parser.parseSignedClaims(jwtToken);
+        checkPasswordVersionValidity(jwtToken, claimsJws);
+        return claimsJws;
     }
 
-    private Key getSigningKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(signingKey);
-        return Keys.hmacShaKeyFor(keyBytes);
+    private void checkPasswordVersionValidity(String jwtToken, Jws<Claims> claimsJws) {
+        if (claimsJws.getPayload().containsKey("pwd_version")) {
+            Long passwordVersion = claimsJws.getPayload().get("pwd_version", Long.class);
+            if (!userService.checkEqualPasswordVersion(claimsJws.getPayload().getSubject(), passwordVersion)) {
+                blackListTokenRedisTemplate.opsForValue()
+                        .set(SecurityConstants.BLACKLIST_KEY_PREFIX.getValue() + jwtToken, jwtToken);
+                blackListTokenRedisTemplate.expire(SecurityConstants.BLACKLIST_KEY_PREFIX.getValue() + jwtToken,
+                        refreshTokenExpiration.toMillis(), TimeUnit.MINUTES);
+                throw new IllegalArgumentException("Password version does not match the valid one");
+            }
+        }
     }
 }

@@ -32,7 +32,8 @@ spring:
       iterations: 2
     jwt:
       secret-key: ${SECRET_SIGNING_KEY}
-      expiration: 1d
+      access-token-expiration: 1h
+      refresh-token-expiration: 7d
 
 liquibase:
   user:
