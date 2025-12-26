@@ -23,6 +23,6 @@ public class User {
     @Column(name = "password", nullable = false)
     private String password;
 
-    @Column(nullable = false, insertable = false)
-    private Long version;
+    @Column(name = "password_version", nullable = false, insertable = false)
+    private Long passwordVersion;
 }
