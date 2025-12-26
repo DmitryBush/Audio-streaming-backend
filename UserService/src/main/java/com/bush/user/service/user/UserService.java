@@ -92,12 +92,22 @@ public class UserService implements UserDetailsService {
                 .map(user -> {
                     if (passwordEncoder.matches(dto.oldPassword(), user.getPassword())) {
                         user.setPassword(passwordEncoder.encode(dto.newPassword()));
+                        user.setVersion(user.getVersion() + 1);
                         return user;
                     }
                     throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
                 })
                 .map(userRepository::save)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+    }
+
+    public boolean checkEqualPasswordVersion(String username, Long passwordVersion) {
+        return Optional.ofNullable(username)
+                .map(userRepository::findByLogin)
+                .map(optionalUser -> optionalUser
+                        .map(user -> user.getVersion().equals(passwordVersion))
+                        .orElseThrow(IllegalArgumentException::new))
+                .orElseThrow(IllegalArgumentException::new);
     }
 
     @Override
