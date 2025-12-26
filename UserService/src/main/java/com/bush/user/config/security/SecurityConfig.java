@@ -1,7 +1,8 @@
-package com.bush.user.config;
+package com.bush.user.config.security;
 
+import com.bush.user.config.security.handler.LogoutSuccessHandler;
 import com.bush.user.entity.RoleEnum;
-import com.bush.user.filter.JwtFilter;
+import com.bush.user.config.security.filter.JwtFilter;
 import com.bush.user.service.user.UserService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -37,14 +38,15 @@ public class SecurityConfig {
     private Integer iterations;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity, JwtFilter jwtFilter) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity, JwtFilter jwtFilter,
+                                                   LogoutSuccessHandler logoutSuccessHandler) throws Exception {
         return httpSecurity
                 .csrf(AbstractHttpConfigurer::disable)
                 .addFilterBefore(jwtFilter, BasicAuthenticationFilter.class)
                 .authorizeHttpRequests(registry -> registry
                         .requestMatchers("/actuator/**", "/error").permitAll()
                         .requestMatchers("/api/*/login", "/api/*/register", "/api/*/logout").permitAll()
-                        .requestMatchers("/api/*/change-password").fullyAuthenticated()
+                        .requestMatchers("/api/*/change-password", "/api/*/refresh-token").fullyAuthenticated()
                         .requestMatchers(HttpMethod.PATCH, "/api/*/users/*/role").hasRole(RoleEnum.ADMIN.name())
                         .requestMatchers("/api/*/users/**").authenticated()
                         .requestMatchers("/api/*/security/**").hasRole(RoleEnum.ADMIN.name())
@@ -65,8 +67,7 @@ public class SecurityConfig {
                         sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .logout(logout -> logout.logoutUrl("/api/v1/logout")
                         .deleteCookies("REFRESH_TOKEN")
-                        .logoutSuccessHandler((request, response, authentication)
-                                -> SecurityContextHolder.clearContext()))
+                        .logoutSuccessHandler(logoutSuccessHandler))
                 .build();
     }
 
