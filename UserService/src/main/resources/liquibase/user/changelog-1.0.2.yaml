@@ -1,0 +1,14 @@
+databaseChangeLog:
+  - changeSet:
+      id: integrate user password version
+      author: Dmitry Bush
+      changes:
+        - addColumn:
+            tableName: users
+            columns:
+              - column:
+                  name: version
+                  type: BIGINT
+                  defaultValue: 0
+                  constraints:
+                    nullable: false
