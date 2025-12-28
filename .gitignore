@@ -1,6 +1,7 @@
 HELP.md
 StreamingService/.gradle
 UserService/.gradle
+SearchService/.gradle
 build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
