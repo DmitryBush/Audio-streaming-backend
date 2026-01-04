@@ -3,3 +3,6 @@ spring:
     url: localhost:9200
     username: elastic
     password: elastic
+  debezium:
+    url: http://localhost:8083
+    request-body-path: classpath:init-scripts/debezium/*.json

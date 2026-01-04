@@ -1,0 +1,22 @@
+{
+    "name": "playlist-connector",
+    "config": {
+        "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+        "plugin.name": "pgoutput",
+        "tasks.max": "1",
+        "database.hostname": "postgres",
+        "database.port": "5432",
+        "database.user": $"POSTGRES_USERNAME",
+        "database.password": $"POSTGRES_PASSWORD",
+        "database.dbname" : "playlist_db",
+        "topic.prefix": "search",
+        "table.include.list": "public.playlists",
+        "key.converter.schemas.enable": "false",
+        "value.converter.schemas.enable": "false",
+        "transforms": "unwrap",
+        "transforms.unwrap.type": "io.debezium.transforms.ExtractNewRecordState",
+        "transforms.unwrap.drop.tombstones": "false",
+        "transforms.unwrap.add.fields": "op,table,source.ts_ms",
+        "transforms.unwrap.delete.handling.mode": "rewrite"
+    }
+}
