@@ -25,7 +25,7 @@ services:
         ports:
           - "5432:5432"
         healthcheck:
-          test: ["CMD", "pg_isready -U $${POSTGRES_USERNAME} -d $${POSTGRES_DB}"]
+          test: ["CMD-SHELL", "pg_isready", "-U", "$${POSTGRES_USERNAME}"]
           interval: 30s
           timeout: 5s
           retries: 5
@@ -53,32 +53,126 @@ services:
 
     # Elasticsearch
     elasticsearch:
-        image: docker.elastic.co/elasticsearch/elasticsearch-wolfi:9.2.3
-        restart: always
-        environment:
-          - discovery.type=single-node
-          - bootstrap.memory_lock=true
-          - xpack.security.enabled=true
-          - xpack.security.http.ssl.enabled=false
-          - ES_JAVA_OPTS=-Xms512m -Xmx512m
-          - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
-        healthcheck:
-          test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health | grep -vq '\"status\":\"red\"'"]
-          interval: 30s       
-          timeout: 10s         
-          retries: 5          
-          start_period: 1m10s
-        ulimits:
-            nofile:
-                soft: 65536
-                hard: 65536
-            memlock:
-                soft: -1
-                hard: -1
+      image: docker.elastic.co/elasticsearch/elasticsearch-wolfi:9.2.3
+      restart: always
+      environment:
+        - discovery.type=single-node
+        - bootstrap.memory_lock=true
+        - xpack.security.enabled=true
+        - xpack.security.http.ssl.enabled=false
+        - ES_JAVA_OPTS=-Xms512m -Xmx512m
+        - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      healthcheck:
+        test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health | grep -vq '\"status\":\"red\"'"]
+        interval: 30s       
+        timeout: 10s         
+        retries: 5          
+        start_period: 1m10s
+      ulimits:
+          nofile:
+              soft: 65536
+              hard: 65536
+          memlock:
+              soft: -1
+              hard: -1
+      ports:
+        - "9200:9200"
+      volumes:
+        - elastic_search_data:/usr/share/elasticsearch/data
+    # Kafka cluster with debezium for reindexation elasticsearch
+    # Kafka cluster
+    kafka-broker-reindex-1:
+        image: quay.io/debezium/kafka:latest
         ports:
-          - "9200:9200"
+          - 9092:9092
+          - 9093:9093
+        environment:
+          KAFKA_NODE_ID: 1
+          KAFKA_KRAFT_CLUSTER_ID: ${KAFKA_CLUSTER_ID}
+          KAFKA_PROCESS_ROLES: broker,controller
+          KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9096
+          KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-broker-reindex-1:9092,EXTERNAL://${HOSTNAME:-localhost}:9096
+          KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+          KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
+          KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka-broker-reindex-1:9093,2@kafka-broker-reindex-2:9093,3@kafka-broker-reindex-3:9093
+        healthcheck:
+          test: ["CMD", "/kafka/bin/kafka-broker-api-versions.sh", "--bootstrap-server", "localhost:9092"]
+          interval: 1m30s
+          timeout: 30s
+          retries: 5
+          start_period: 30s
         volumes:
-          - elastic_search_data:/usr/share/elasticsearch/data
+          - kafka_reindex_data_1:/kafka/data
+    kafka-broker-reindex-2:
+        image: quay.io/debezium/kafka:latest
+        ports:
+          - 9094:9092
+          - 9095:9093
+        environment:
+          KAFKA_NODE_ID: 2
+          KAFKA_KRAFT_CLUSTER_ID: ${KAFKA_CLUSTER_ID}
+          KAFKA_PROCESS_ROLES: broker,controller
+          KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9096
+          KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-broker-reindex-2:9092,EXTERNAL://${HOSTNAME:-localhost}:9096
+          KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+          KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
+          KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka-broker-reindex-1:9093,2@kafka-broker-reindex-2:9093,3@kafka-broker-reindex-3:9093
+        healthcheck:
+          test: ["CMD", "/kafka/bin/kafka-broker-api-versions.sh", "--bootstrap-server", "localhost:9092"]
+          interval: 1m30s
+          timeout: 30s
+          retries: 5
+          start_period: 30s
+        volumes:
+          - kafka_reindex_data_2:/kafka/data
+    kafka-broker-reindex-3:
+        image: quay.io/debezium/kafka:latest
+        ports:
+          - 9096:9092
+          - 9097:9093
+        environment:
+          KAFKA_NODE_ID: 3
+          KAFKA_KRAFT_CLUSTER_ID: ${KAFKA_CLUSTER_ID}
+          KAFKA_PROCESS_ROLES: broker,controller
+          KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9096
+          KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-broker-reindex-3:9092,EXTERNAL://${HOSTNAME:-localhost}:9096
+          KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+          KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
+          KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka-broker-reindex-1:9093,2@kafka-broker-reindex-2:9093,3@kafka-broker-reindex-3:9093
+        healthcheck:
+          test: ["CMD", "/kafka/bin/kafka-broker-api-versions.sh", "--bootstrap-server", "localhost:9092"]
+          interval: 1m30s
+          timeout: 30s
+          retries: 5
+          start_period: 30s
+        volumes:
+          - kafka_reindex_data_3:/kafka/data
+    # Kafka connect with debezium
+    debezium-reindex:
+        image: quay.io/debezium/connect:3.3.2.Final
+        ports:
+          - 8083:8083
+        depends_on:
+          kafka-broker-reindex-1:
+            condition: service_healthy
+          kafka-broker-reindex-2:
+            condition: service_healthy
+          kafka-broker-reindex-3:
+            condition: service_healthy
+          postgres:
+            condition: service_healthy
+        environment:
+          BOOTSTRAP_SERVERS: kafka-broker-reindex-1:9092
+          GROUP_ID: ${KAFKA_CLUSTER_ID}
+          CONFIG_STORAGE_TOPIC: debezium_configs
+          OFFSET_STORAGE_TOPIC: debezium_offsets
+          STATUS_STORAGE_TOPIC: debezium_statuses
+        healthcheck:
+          test: ["CMD", "curl", "-s", "http://localhost:8083/"]
+          interval: 1m
+          timeout: 10s
+          retries: 5
+          start_period: 1m
 
     # Audio streaming microservices
     user-service:
@@ -109,3 +203,6 @@ volumes:
   redis_data:
   storage_data:
   elastic_search_data:
+  kafka_reindex_data_1:
+  kafka_reindex_data_2:
+  kafka_reindex_data_3:
