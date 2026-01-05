@@ -4,7 +4,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
@@ -12,8 +14,6 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 
 @Slf4j
@@ -40,7 +40,7 @@ public class DebeziumConnectorService {
         }
     }
 
-    public void registerConnector(InputStream inputStream) {
+    public void registerConnector(String jsonConnectorConfiguration) {
         try {
             RestTemplate restTemplate = new RestTemplate();
             URI url = UriComponentsBuilder.fromUriString(debeziumUrl)
@@ -49,8 +49,10 @@ public class DebeziumConnectorService {
                     .build()
                     .toUri();
 
-            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST,
-                    new HttpEntity<>(inputStream.readAllBytes()), String.class);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<String> httpEntity = new HttpEntity<>(jsonConnectorConfiguration, headers);
+            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, httpEntity, String.class);
             if (!response.getStatusCode().is2xxSuccessful()) {
                 throw new HttpClientErrorException(response.getStatusCode());
             }
@@ -60,9 +62,6 @@ public class DebeziumConnectorService {
         } catch (RestClientException e) {
             log.error("An error has occurred while generating request");
             throw e;
-        } catch (IOException e) {
-            log.error("An error has occurred while reading json");
-            throw new RuntimeException(e.getCause());
         }
     }
 }

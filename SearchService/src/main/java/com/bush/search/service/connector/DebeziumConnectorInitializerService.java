@@ -12,6 +12,8 @@ import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 @Slf4j
 @Service
@@ -36,7 +38,7 @@ public class DebeziumConnectorInitializerService {
 
     private void createConnector(String connectorName, Resource jsonResource) throws IOException {
         if (!debeziumConnectorService.isConnectorExist(connectorName)) {
-            debeziumConnectorService.registerConnector(jsonResource.getInputStream());
+            debeziumConnectorService.registerConnector(jsonResource.getContentAsString(StandardCharsets.UTF_8));
             log.info("Registered connector {}", connectorName);
         }
     }
