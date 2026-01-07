@@ -1,4 +1,13 @@
 spring:
+  datasource:
+    metadata:
+      name: metadata_db
+      username: postgres
+      password: postgres
+    playlist:
+      name: playlist_db
+      username: postgres
+      password: postgres
   elastic:
     url: localhost:9200
     username: elastic
