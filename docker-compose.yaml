@@ -84,8 +84,7 @@ services:
     kafka-broker-reindex-1:
         image: quay.io/debezium/kafka:latest
         ports:
-          - 9092:9092
-          - 9093:9093
+          - 9092:9096
         environment:
           KAFKA_NODE_ID: 1
           KAFKA_KRAFT_CLUSTER_ID: ${KAFKA_CLUSTER_ID}
@@ -106,14 +105,13 @@ services:
     kafka-broker-reindex-2:
         image: quay.io/debezium/kafka:latest
         ports:
-          - 9094:9092
-          - 9095:9093
+          - 9094:9096
         environment:
           KAFKA_NODE_ID: 2
           KAFKA_KRAFT_CLUSTER_ID: ${KAFKA_CLUSTER_ID}
           KAFKA_PROCESS_ROLES: broker,controller
           KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9096
-          KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-broker-reindex-2:9092,EXTERNAL://${HOSTNAME:-localhost}:9096
+          KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-broker-reindex-1:9092,EXTERNAL://${HOSTNAME:-localhost}:9096
           KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
           KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
           KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka-broker-reindex-1:9093,2@kafka-broker-reindex-2:9093,3@kafka-broker-reindex-3:9093
@@ -128,14 +126,13 @@ services:
     kafka-broker-reindex-3:
         image: quay.io/debezium/kafka:latest
         ports:
-          - 9096:9092
-          - 9097:9093
+          - 9096:9096
         environment:
           KAFKA_NODE_ID: 3
           KAFKA_KRAFT_CLUSTER_ID: ${KAFKA_CLUSTER_ID}
           KAFKA_PROCESS_ROLES: broker,controller
           KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9096
-          KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-broker-reindex-3:9092,EXTERNAL://${HOSTNAME:-localhost}:9096
+          KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-broker-reindex-1:9092,EXTERNAL://${HOSTNAME:-localhost}:9096
           KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
           KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
           KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka-broker-reindex-1:9093,2@kafka-broker-reindex-2:9093,3@kafka-broker-reindex-3:9093
