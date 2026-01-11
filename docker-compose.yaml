@@ -1,0 +1,84 @@
+services:
+    # Key-value database
+    redis:
+        image: redis:8.2-alpine
+        restart: always
+        command: redis-server --save 60 1 --loglevel warning
+        ports:
+          - "6379:6379"
+        volumes:
+          - redis_data:/data
+
+    # Object-relational database
+    postgres:
+        image: postgres:18.0-alpine
+        restart: always
+        environment:
+          - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+          - POSTGRES_MULTIPLE_DATABASES=${POSTGRES_MULTIPLE_DATABASES}
+        ports:
+          - "5432:5432"
+        volumes:
+          - db_data:/var/lib/postgresql
+          - ./InitScripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql
+
+    # Simple Storage Service (S3)
+    minio:
+        image: minio/minio:RELEASE.2025-09-07T16-13-09Z
+        restart: always
+        command: server /data
+        ports:
+          - "9000:9000"
+        volumes:
+          - storage_data:/data
+
+    # Elasticsearch
+    elasticsearch:
+        image: elasticsearch:9.2.0
+        restart: always
+        environment:
+          - discovery.type=single-node
+          - bootstrap.memory_lock=true
+          - xpack.security.enabled=true
+          - xpack.security.http.ssl.enabled=false
+          - ES_JAVA_OPTS=-Xms512m -Xmx512m
+          - ELASTIC_PASSWORD=elastic
+        ulimits:
+            nofile:
+                soft: 65536
+                hard: 65536
+            memlock:
+                soft: -1
+                hard: -1
+        ports:
+          - "9200:9200"
+        volumes:
+          - elastic_search_data:/usr/share/elasticsearch/data
+    user-service:
+        image: sound-flow-user-service:latest
+        restart: always
+        environment:
+          - SECRET_SIGNING_KEY=${SECRET_SIGNING_KEY}
+          - POSTGRES_USER_JDBC_URL=${POSTGRES_USER_JDBC_URL}
+          - POSTGRES_PLAYLIST_JDBC_URL=${POSTGRES_PLAYLIST_JDBC_URL}
+          - POSTGRES_USERNAME=${POSTGRES_USERNAME}
+          - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+          - REDIS_HOST=${REDIS_HOST}
+          - REDIS_PORT=${REDIS_PORT}
+        healthcheck:
+          test: ["CMD", "wget", "--no-verbose", "--spider", "--tries=1", "http://localhost:8080/actuator/health"]
+          interval: 1m30s
+          timeout: 10s
+          retries: 5
+          start_period: 10s
+        depends_on:
+          - postgres
+          - redis
+        ports:
+          - 8081:8080
+
+volumes:
+  db_data:
+  redis_data:
+  storage_data:
+  elastic_search_data:

@@ -1,0 +1,12 @@
+CREATE TABLE roles (
+    role_id SMALLINT NOT NULL PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    role_name VARCHAR(20) NOT NULL UNIQUE
+);
+
+CREATE TABLE users (
+    login VARCHAR(32) NOT NULL PRIMARY KEY,
+    role_id SMALLINT NOT NULL,
+    password VARCHAR(255) NOT NULL,
+
+    FOREIGN KEY (role_id) REFERENCES roles(role_id)
+);

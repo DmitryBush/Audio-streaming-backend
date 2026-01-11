@@ -1,5 +1,6 @@
 HELP.md
 StreamingService/.gradle
+UserService/.gradle
 build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
@@ -44,3 +45,5 @@ out/
 # Datasource local storage ignored files
 /dataSources/
 /dataSources.local.xml
+
+.env
