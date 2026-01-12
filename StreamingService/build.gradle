@@ -44,7 +44,7 @@ dependencies {
 
     implementation 'io.minio:minio:8.6.0'
 
-    implementation project(':UuidAdapter')
+    implementation project(':OutboxLibrary')
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'

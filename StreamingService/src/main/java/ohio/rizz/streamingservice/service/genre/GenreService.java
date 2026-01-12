@@ -1,5 +1,8 @@
 package ohio.rizz.streamingservice.service.genre;
 
+import com.bush.outbox.domain.dto.OutboxRecordDto;
+import com.bush.outbox.domain.entity.CrudOperationType;
+import com.bush.outbox.service.OutboxService;
 import lombok.RequiredArgsConstructor;
 import ohio.rizz.streamingservice.Entities.Genre;
 import ohio.rizz.streamingservice.Repositories.GenreRepository;
@@ -22,6 +25,8 @@ import java.util.Optional;
 public class GenreService {
     private final GenreRepository genreRepository;
 
+    private final OutboxService outboxService;
+
     private final GenreCreateMapper genreCreateMapper;
     private final GenreReadMapper genreReadMapper;
 
@@ -33,6 +38,8 @@ public class GenreService {
                 .orElseGet(() -> Optional.of(genreDto)
                         .map(genreCreateMapper::mapToGenre)
                         .map(genreRepository::save)
+                        .map(genre -> outboxService.createRecord(
+                                new OutboxRecordDto<>("genre", CrudOperationType.C, genre)))
                         .map(genreReadMapper::mapToGenreReadDto)
                         .orElseThrow());
     }
