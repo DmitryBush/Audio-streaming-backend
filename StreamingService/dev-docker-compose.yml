@@ -1,0 +1,38 @@
+services:
+  # Key-value database
+  redis:
+    image: redis:8.2-alpine
+    restart: always
+    command: redis-server --save 60 1 --loglevel warning
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  # Object-relational database
+  postgres:
+    image: postgres:18.0-alpine
+    restart: always
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_MULTIPLE_DATABASES=${POSTGRES_MULTIPLE_DATABASES}
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql
+      - ../InitScripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql
+
+  # Simple Storage Service (S3)
+  minio:
+    image: minio/minio:RELEASE.2025-09-07T16-13-09Z
+    restart: always
+    command: server /data
+    ports:
+      - "9000:9000"
+    volumes:
+      - storage_data:/data
+
+volumes:
+  db_data:
+  redis_data:
+  storage_data:
