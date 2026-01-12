@@ -1,5 +1,8 @@
 package ohio.rizz.streamingservice.service.song;
 
+import com.bush.outbox.domain.dto.OutboxRecordDto;
+import com.bush.outbox.domain.entity.CrudOperationType;
+import com.bush.outbox.service.OutboxService;
 import lombok.RequiredArgsConstructor;
 import ohio.rizz.streamingservice.Entities.Album;
 import ohio.rizz.streamingservice.Entities.Song;
@@ -24,6 +27,8 @@ import java.util.Optional;
 public class SongService {
     private final SongRepository songRepository;
 
+    private final OutboxService outboxService;
+
     private final SongCreateMapper songCreateMapper;
     private final SongReadMapper songReadMapper;
 
@@ -35,12 +40,14 @@ public class SongService {
                         .map(songCreateMapper::mapToSong)
                         .map(song -> {
                             song.setArtist(Optional.ofNullable(album)
-                                                   .map(Album::getArtist)
-                                                   .orElse(null));
+                                    .map(Album::getArtist)
+                                    .orElse(null));
                             song.setAlbum(album);
                             return song;
                         })
                         .map(songRepository::save)
+                        .map(song -> outboxService.createRecord(
+                                new OutboxRecordDto<>("song", CrudOperationType.C, song)))
                         .map(songReadMapper::mapToSongReadDto)
                         .orElseThrow());
     }

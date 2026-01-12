@@ -2,18 +2,15 @@ package ohio.rizz.streamingservice.service.storage;
 
 import io.minio.*;
 import io.minio.errors.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.core.io.InputStreamResource;
-import org.springframework.core.io.Resource;
-import org.springframework.stereotype.Service;
+import ohio.rizz.streamingservice.service.storage.exception.*;
+import org.springframework.beans.factory.annotation.*;
+import org.springframework.core.io.*;
+import org.springframework.scheduling.annotation.*;
+import org.springframework.stereotype.*;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
+import java.io.*;
+import java.security.*;
+import java.util.concurrent.*;
 
 @Service
 public class ObjectStorageService {
@@ -29,6 +26,35 @@ public class ObjectStorageService {
                 .build();
     }
 
+    public void saveFile(InputStream inputStream, Long streamSize, String bucket, String objectReference) {
+        try {
+            boolean isBucketExist = minioClient.bucketExists(BucketExistsArgs.builder().bucket(bucket).build());
+            if (!isBucketExist) {
+                minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucket).build());
+            }
+
+            minioClient.putObject(PutObjectArgs.builder()
+                    .bucket(bucket)
+                    .object(objectReference)
+                    .stream(inputStream, streamSize, -1)
+                    .build());
+        } catch (ErrorResponseException | InsufficientDataException | InternalException | InvalidKeyException |
+                 InvalidResponseException | IOException | NoSuchAlgorithmException | ServerException |
+                 XmlParserException e) {
+            throw new ObjectStorageException(e.getMessage(), e.getCause());
+        }
+    }
+
+    @Async("fileUploadTaskExecutor")
+    public CompletableFuture<Void> saveFileAsync(InputStream inputStream, long streamSize, String bucket, String objectReference) {
+        return CompletableFuture.runAsync(() -> saveFile(inputStream, streamSize, bucket, objectReference));
+    }
+
+    @Async("fileUploadTaskExecutor")
+    public CompletableFuture<Void> saveFileAsync(File file, String bucket, String object) {
+        return CompletableFuture.runAsync(() -> saveFile(file, bucket, object));
+    }
+
     public void saveFile(File file, String bucket, String object) {
         try {
             boolean isBucketExist = minioClient.bucketExists(BucketExistsArgs.builder().bucket(bucket).build());
@@ -37,20 +63,33 @@ public class ObjectStorageService {
             }
 
             minioClient.uploadObject(UploadObjectArgs.builder()
-                                             .bucket(bucket)
-                                             .object(object)
-                                             .filename(file.getAbsolutePath())
-                                             .build());
+                    .bucket(bucket)
+                    .object(object)
+                    .filename(file.getAbsolutePath())
+                    .build());
         } catch (ErrorResponseException | InsufficientDataException | InternalException | InvalidKeyException |
                  InvalidResponseException | IOException | NoSuchAlgorithmException | ServerException |
                  XmlParserException e) {
+            throw new ObjectStorageException(e.getMessage(), e.getCause());
+        }
+    }
+
+    public void deleteFile(String bucket, String object) {
+        try {
+            minioClient.removeObject(RemoveObjectArgs.builder()
+                    .bucket(bucket)
+                    .object(object)
+                    .build());
+        } catch (ServerException | InsufficientDataException | ErrorResponseException | IOException |
+                 NoSuchAlgorithmException | InvalidKeyException | InvalidResponseException | XmlParserException |
+                 InternalException e) {
             throw new RuntimeException(e);
         }
     }
 
     public Resource loadResource(String bucket, String object) {
-        try(InputStream inputStream = minioClient.getObject(GetObjectArgs.builder()
-                                                                    .bucket(bucket).object(object).build())) {
+        try (InputStream inputStream = minioClient.getObject(GetObjectArgs.builder()
+                .bucket(bucket).object(object).build())) {
             Resource resource = new ByteArrayResource(inputStream.readAllBytes());
             if (resource.exists() && resource.isReadable()) {
                 return resource;
@@ -66,8 +105,8 @@ public class ObjectStorageService {
     public InputStreamResource loadStreamResource(String bucket, String object, Long startPosition, Long chunkSize) {
         try {
             InputStream inputStream = minioClient.getObject(GetObjectArgs.builder()
-                                                                    .bucket(bucket).object(object).offset(startPosition)
-                                                                    .length(chunkSize).build());
+                    .bucket(bucket).object(object).offset(startPosition)
+                    .length(chunkSize).build());
             return new InputStreamResource(inputStream);
         } catch (ServerException | InternalException | XmlParserException | InsufficientDataException |
                  ErrorResponseException | IOException | NoSuchAlgorithmException | InvalidKeyException |

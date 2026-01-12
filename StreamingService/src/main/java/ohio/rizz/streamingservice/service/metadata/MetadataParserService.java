@@ -16,6 +16,7 @@ import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.TagException;
 import org.jaudiotagger.tag.TagField;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -33,8 +34,6 @@ import java.util.regex.Pattern;
 public class MetadataParserService {
     private final Pattern metadataPattern = Pattern.compile("(?<=\")[^\"]+?(?=\")");
 
-    private final ContentTypeService contentTypeService;
-
     public SongDto extractMetadataFromFile(File file) {
         AudioFileMetadata metadata = readAudioFileMetadata(file);
 
@@ -43,8 +42,9 @@ public class MetadataParserService {
             var artist = getArtistDto(metadata.tag());
             return getSongDto(metadata.tag(), metadata.header(), artist, album);
         } catch (AbsentImportantMetadataException e) {
+            String songObjectReference = getObjectReference("track", file.getName());
             return new SongDto(file.getName(), null, metadata.header().getTrackLength(),
-                               null, null, null);
+                               null, songObjectReference, null, null);
         }
     }
 
@@ -73,12 +73,7 @@ public class MetadataParserService {
         }
 
         var artworkDto = Optional.ofNullable(tag.getFirstArtwork())
-                .map(artwork -> {
-                    String suffix = contentTypeService.getSuffixType(artwork.getMimeType());
-                    return new ArtworkDto(String.format("art/%s/art%s",
-                                                  UUID.nameUUIDFromBytes(name.getBytes(StandardCharsets.UTF_8)), suffix),
-                                          artwork.getBinaryData(), suffix);
-                })
+                .map(artwork -> new ArtworkDto(getObjectReference("art", name), artwork.getBinaryData()))
                 .orElse(null);
 
         var releaseDate = Optional.ofNullable(tag.getFirstField(FieldKey.YEAR))
@@ -128,6 +123,7 @@ public class MetadataParserService {
                 .map(MetadataParserService::removeZeroBit)
                 .map(this::extractMetadataText)
                 .orElseThrow(() -> new AbsentImportantMetadataException("The track title must be specified"));
+        String songObjectReference = getObjectReference("track", name);
         var duration = header.getTrackLength();
         var trackNumberAlbum = Optional.ofNullable(tag.getFirst(FieldKey.TRACK))
                 .map(s -> s.isBlank() ? null : s)
@@ -140,7 +136,12 @@ public class MetadataParserService {
 
         log.debug("\nTotal info about song:\nName - {}\nDuration - {}\nTrack number in album - {}\nDisc - {}", name,
                   duration, trackNumberAlbum, discMetadata);
-        return new SongDto(name, discMetadata.currentDisk(), duration, trackNumberAlbum, artist, album);
+        return new SongDto(name, discMetadata.currentDisk(), duration, trackNumberAlbum, songObjectReference, artist, album);
+    }
+
+    @NotNull
+    private static String getObjectReference(String topic, String objectName) {
+        return String.format("%s/%s/audio", topic, UUID.nameUUIDFromBytes(objectName.getBytes()));
     }
 
     private static String removeZeroBit(String s) {
