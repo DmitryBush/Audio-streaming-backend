@@ -9,3 +9,5 @@ databaseChangeLog:
       file: db/changelog/maintenance/changelog-1.0.3.sql
   - include:
       file: db/changelog/minor/changelog-1.0.4.yml
+  - include:
+      file: db/changelog/minor/changelog-1.0.5.yml
