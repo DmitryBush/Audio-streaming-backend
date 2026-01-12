@@ -85,7 +85,8 @@ jobs:
     - name: Run manual build steps
       if: matrix.build-mode == 'manual'
       shell: bash
-      run: | 
+      run: |
+        ./gradlew wrapper
         ./gradlew build -x test
 
     - name: Perform CodeQL Analysis
