@@ -1,9 +1,9 @@
-package ohio.rizz.streamingservice.service.outbox;
+package com.bush.outbox.service;
 
+import com.bush.outbox.domain.dto.OutboxRecordDto;
+import com.bush.outbox.repository.OutboxRepository;
+import com.bush.outbox.service.mapper.OutboxMetadataCreateMapper;
 import lombok.RequiredArgsConstructor;
-import ohio.rizz.streamingservice.Repositories.OutboxMetadataRepository;
-import ohio.rizz.streamingservice.dto.outbox.OutboxMetadataDto;
-import ohio.rizz.streamingservice.service.outbox.mapper.OutboxMetadataCreateMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,12 +14,12 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class OutboxMetadataService {
-    private final OutboxMetadataRepository outboxMetadataRepository;
+    private final OutboxRepository outboxMetadataRepository;
 
     private final OutboxMetadataCreateMapper outboxMetadataCreateMapper;
 
     @Transactional(propagation = Propagation.MANDATORY)
-    public <T> T createRecord(OutboxMetadataDto<T> outboxMetadataDto) {
+    public <T> T createRecord(OutboxRecordDto<T> outboxMetadataDto) {
         Optional.of(outboxMetadataDto)
                 .map(outboxMetadataCreateMapper::mapToOutboxMetadata)
                 .map(outboxMetadataRepository::save);
