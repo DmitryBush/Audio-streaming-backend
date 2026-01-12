@@ -4,7 +4,7 @@ databaseChangeLog:
       author: Dmitry Bush
       changes:
         - createTable:
-            tableName: metadata_outbox
+            tableName: outbox_service_table
             columns:
               - column:
                   name: operation_id
@@ -13,8 +13,8 @@ databaseChangeLog:
                     nullable: false
                     primaryKey: true
               - column:
-                  name: table_name
-                  type: VARCHAR(63)
+                  name: object_name
+                  type: VARCHAR(255)
                   constraints:
                     nullable: false
               - column:

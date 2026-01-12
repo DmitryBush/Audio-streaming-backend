@@ -10,7 +10,7 @@ import org.mapstruct.MappingConstants;
 import org.mapstruct.Named;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
-public interface OutboxMetadataCreateMapper {
+public interface OutboxCreateMapper {
     @Mapping(target = "payload", source = "payload", qualifiedByName = "convertToJsonPayload")
     @Mapping(target = "operationId", ignore = true)
     @Mapping(target = "createdAt", ignore = true)

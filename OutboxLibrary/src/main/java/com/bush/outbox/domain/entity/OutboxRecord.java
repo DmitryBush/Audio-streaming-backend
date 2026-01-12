@@ -23,15 +23,15 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "metadata_outbox")
+@Table(name = "outbox_service_table")
 public class OutboxRecord {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @UuidGenerator(algorithm = UuidTimeEpochGeneratorAdapter.class)
     @JdbcTypeCode(SqlTypes.UUID)
     private UUID operationId;
-    @Column(name = "table_name", nullable = false, length = 63)
-    private String tableName;
+    @Column(name = "object_name", nullable = false)
+    private String objectName;
     @Column(name = "operation_type")
     @Enumerated(EnumType.STRING)
     private CrudOperationType operationType;
