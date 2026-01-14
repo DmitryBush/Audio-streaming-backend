@@ -12,13 +12,13 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
+@Transactional(readOnly = true, transactionManager = "outboxTransactionManager")
 public class OutboxService {
     private final OutboxRepository outboxMetadataRepository;
 
     private final OutboxCreateMapper outboxCreateMapper;
 
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.MANDATORY, transactionManager = "outboxTransactionManager")
     public <T> T createRecord(OutboxRecordDto<T> outboxMetadataDto) {
         Optional.of(outboxMetadataDto)
                 .map(outboxCreateMapper::mapToOutboxMetadata)
