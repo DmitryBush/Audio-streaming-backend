@@ -40,3 +40,6 @@ liquibase:
     change-log: classpath:liquibase/user/changelog-master.yaml
   playlist:
     change-log: classpath:liquibase/playlist/changelog-master.yaml
+
+outbox:
+  transaction-manager-name: playlistTransactionManager
