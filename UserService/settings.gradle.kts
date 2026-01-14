@@ -1,1 +1,1 @@
-rootProject.name = "UserService"
+rootProject.name = "sound-flow-backend"

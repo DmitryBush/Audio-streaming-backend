@@ -26,6 +26,7 @@ import java.util.UUID;
 @Table(name = "outbox_service_table")
 public class OutboxRecord {
     @Id
+    @Column(name = "operation_id", nullable = false)
     @GeneratedValue(strategy = GenerationType.UUID)
     @UuidGenerator(algorithm = UuidTimeEpochGeneratorAdapter.class)
     @JdbcTypeCode(SqlTypes.UUID)

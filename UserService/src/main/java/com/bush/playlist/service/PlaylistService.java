@@ -1,5 +1,8 @@
 package com.bush.playlist.service;
 
+import com.bush.outbox.domain.dto.OutboxRecordDto;
+import com.bush.outbox.domain.entity.CrudOperationType;
+import com.bush.outbox.service.OutboxService;
 import com.bush.playlist.dto.PlaylistCreateDto;
 import com.bush.playlist.dto.PlaylistReadDto;
 import com.bush.playlist.dto.PlaylistTrackDto;
@@ -31,6 +34,8 @@ public class PlaylistService {
     private final PlaylistRepository playlistRepository;
     private final PlaylistTracksRepository playlistTracksRepository;
 
+    private final OutboxService outboxService;
+
     private final PlaylistCreateMapper createMapper;
     private final PlaylistReadMapper readMapper;
 
@@ -45,6 +50,8 @@ public class PlaylistService {
                     return playlist;
                 })
                 .map(playlistRepository::save)
+                .map(playlist -> outboxService.createRecord(
+                        new OutboxRecordDto<>("playlist", CrudOperationType.C, playlist)))
                 .map(readMapper::mapToPlaylistReadDto)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST));
     }
@@ -61,6 +68,8 @@ public class PlaylistService {
                     return playlist;
                 })
                 .map(playlistRepository::saveAndFlush)
+                .map(playlist -> outboxService.createRecord(
+                        new OutboxRecordDto<>("playlist", CrudOperationType.U, playlist)))
                 .map(readMapper::mapToPlaylistReadDto)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
@@ -76,6 +85,8 @@ public class PlaylistService {
                                 throw new ResponseStatusException(HttpStatus.FORBIDDEN);
                             }
                             playlistRepository.deleteById(playlist.getPlaylistId());
+                            outboxService.createRecord(
+                                    new OutboxRecordDto<>("playlist", CrudOperationType.D, playlist));
                         }, () -> {
                             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
                         }), () -> {

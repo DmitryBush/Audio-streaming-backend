@@ -1,3 +1,5 @@
 databaseChangeLog:
   - include:
       file: liquibase/playlist/playlist-structure.sql
+  - include:
+      file: liquibase/playlist/minor/changelog-1.0.1.yml
