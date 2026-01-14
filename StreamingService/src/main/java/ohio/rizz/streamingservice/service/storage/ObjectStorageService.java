@@ -47,26 +47,12 @@ public class ObjectStorageService {
 
     @Async("fileUploadTaskExecutor")
     public CompletableFuture<Void> saveFileAsync(InputStream inputStream, long streamSize, String bucket, String objectReference) {
-        CompletableFuture<Void> future = new CompletableFuture<>();
-        try {
-            saveFile(inputStream, streamSize, bucket, objectReference);
-            future.complete(null);
-            return future;
-        } catch (RuntimeException e) {
-            throw new ObjectStorageException(e.getMessage(), e.getCause());
-        }
+        return CompletableFuture.runAsync(() -> saveFile(inputStream, streamSize, bucket, objectReference));
     }
 
     @Async("fileUploadTaskExecutor")
     public CompletableFuture<Void> saveFileAsync(File file, String bucket, String object) {
-        CompletableFuture<Void> future = new CompletableFuture<>();
-        try {
-            saveFile(file, bucket, object);
-            future.complete(null);
-        } catch (RuntimeException e) {
-            future.completeExceptionally(e);
-        }
-        return future;
+        return CompletableFuture.runAsync(() -> saveFile(file, bucket, object));
     }
 
     public void saveFile(File file, String bucket, String object) {

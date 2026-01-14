@@ -2,6 +2,7 @@ package ohio.rizz.streamingservice.service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import ohio.rizz.streamingservice.Entities.Album;
 import ohio.rizz.streamingservice.Entities.Artist;
@@ -34,11 +35,13 @@ import org.springframework.web.server.ResponseStatusException;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
 
 @Service
 @RequiredArgsConstructor
@@ -72,13 +75,9 @@ public class UploadService {
 
             asyncTasks.values().forEach(CompletableFuture::join);
             return songReadDto;
-        } catch (IOException | CompletionException | ObjectStorageException e) {
+        } catch (Exception e) {
             log.error("Filed to upload file: {}", e.getMessage());
-            asyncTasks.values().forEach(future -> {
-                if (!future.isDone()) {
-                    future.cancel(true);
-                }
-            });
+            asyncTasks.values().forEach(CompletableFuture::join);
             objectReferencesMap.forEach(this::deleteObjectStorageUpload);
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         } finally {
@@ -156,9 +155,14 @@ public class UploadService {
         }
     }
 
+    @SneakyThrows
     private static void deleteTemporalFile(File file) {
-        if (!file.delete()) {
-            throw new RuntimeException("The temporary file was not deleted due to an unknown error");
+        for (int i = 0; i < 5; i++) {
+            if (file.delete()) {
+                return;
+            }
+            Thread.sleep(100);
         }
+        throw new RuntimeException("The temporary file was not deleted due to an unknown error");
     }
 }

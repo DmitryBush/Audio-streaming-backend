@@ -1,0 +1,45 @@
+spring:
+  datasource:
+    user:
+      url: jdbc:postgresql://localhost:5432/user_db
+      username: postgres
+      password: postgres
+      driver-class-name: org.postgresql.Driver
+    playlist:
+      url: jdbc:postgresql://localhost:5432/playlist_db
+      username: postgres
+      password: postgres
+      driver-class-name: org.postgresql.Driver
+  jpa:
+    open-in-view: false
+    properties.hibernate:
+      show_sql: true
+      format_sql: true
+      hbm2ddl.auto: validate
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  cache:
+    default-TTL: 15m
+    type: redis
+  security:
+    encryption-config:
+      salt-length: 16
+      hash-length: 32
+      parallelism: 1
+      memory: 47104
+      iterations: 2
+    jwt:
+      secret-key: c3VwZXItbWVnYS11bHRyYS1wcm8tc2VjcmV0LXlvdS1ldmVuLWdldC1pdC1zaWduaW5nLWtleQ==
+      access-token-expiration: 1h
+      refresh-token-expiration: 7d
+
+liquibase:
+  user:
+    change-log: classpath:liquibase/user/changelog-master.yaml
+  playlist:
+    change-log: classpath:liquibase/playlist/changelog-master.yaml
+
+outbox:
+  transaction-manager-name: playlistTransactionManager

@@ -23,7 +23,7 @@ public class FileSystemService {
 
     public File createTemporalFile(MultipartFile multipartFile, String suffix) {
         var filename = multipartFile.getOriginalFilename();
-        return getTemporalFile(suffix, filename);
+        return getTemporalFile(filename, suffix);
     }
 
     public File createTemporalFile(String filename, String suffix) {
