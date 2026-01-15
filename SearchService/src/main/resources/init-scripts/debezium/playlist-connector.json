@@ -11,7 +11,7 @@
         "database.dbname" : "playlist_db",
         "topic.prefix": "search-playlist",
         "slot.name": "debezium_playlist",
-        "table.include.list": "public.playlists",
+        "table.include.list": "public.outbox_service_table",
         "key.converter.schemas.enable": "false",
         "value.converter.schemas.enable": "false",
         "transforms": "unwrap",
