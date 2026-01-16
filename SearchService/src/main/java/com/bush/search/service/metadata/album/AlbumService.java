@@ -25,8 +25,8 @@ public class AlbumService {
     private final AlbumCreateMapper albumCreateMapper;
 
     public void createAlbum(AlbumPayload albumPayload) {
-        Genre genre = genreService.getGenreById(albumPayload.genreId());
-        Artist artist = artistService.getArtistById(albumPayload.artistId());
+        Genre genre = genreService.getGenreById(albumPayload.genrePayload());
+        Artist artist = artistService.getArtistById(albumPayload.artistPayload());
         Optional.of(albumPayload)
                 .map(albumCreateMapper::mapToAlbum)
                 .map(album -> albumCreateMapper.mapExternalDocuments(album, artist, genre))
