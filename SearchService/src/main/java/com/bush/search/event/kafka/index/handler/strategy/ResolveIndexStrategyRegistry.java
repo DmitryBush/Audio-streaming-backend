@@ -1,6 +1,6 @@
 package com.bush.search.event.kafka.index.handler.strategy;
 
-import com.bush.outbox.domain.entity.CrudOperationType;
+import com.bush.search.domain.index.service.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -11,7 +11,7 @@ import java.util.List;
 public class ResolveIndexStrategyRegistry {
     private final List<ResolveIndexStrategy> resolveIndexStrategyList;
 
-    public void resolveIndexStrategy(String jsonPayload, CrudOperationType operationType, String objectName) {
+    public void resolveIndexStrategy(String jsonPayload, Operation operationType, String objectName) {
         resolveIndexStrategyList.stream()
                 .filter(resolveIndexStrategy -> resolveIndexStrategy.isProcessingSupported(objectName))
                 .findFirst()

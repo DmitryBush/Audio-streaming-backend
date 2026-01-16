@@ -1,7 +1,7 @@
 package com.bush.search.event.kafka.index.handler.metadata.strategy.crud.artist;
 
-import com.bush.outbox.domain.entity.CrudOperationType;
 import com.bush.search.domain.index.ArtistPayload;
+import com.bush.search.domain.index.service.Operation;
 import com.bush.search.event.kafka.index.handler.strategy.crud.AbstractCrudOperationStrategy;
 import com.bush.search.service.metadata.artist.ArtistService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +13,7 @@ public class ArtistDeleteStrategy extends AbstractCrudOperationStrategy<ArtistSe
     private ArtistService artistService;
 
     public ArtistDeleteStrategy() {
-        super(CrudOperationType.D, ArtistService.class, ArtistPayload.class);
+        super(Operation.DELETE, ArtistService.class, ArtistPayload.class);
     }
 
     @Override

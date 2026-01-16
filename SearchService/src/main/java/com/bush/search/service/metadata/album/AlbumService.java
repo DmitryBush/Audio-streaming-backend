@@ -19,17 +19,11 @@ import java.util.Optional;
 public class AlbumService {
     private final AlbumRepository albumRepository;
 
-    private final GenreService genreService;
-    private final ArtistService artistService;
-
     private final AlbumCreateMapper albumCreateMapper;
 
     public void createAlbum(AlbumPayload albumPayload) {
-        Genre genre = genreService.getGenreById(albumPayload.genrePayload());
-        Artist artist = artistService.getArtistById(albumPayload.artistPayload());
         Optional.of(albumPayload)
                 .map(albumCreateMapper::mapToAlbum)
-                .map(album -> albumCreateMapper.mapExternalDocuments(album, artist, genre))
                 .map(albumRepository::save);
     }
 

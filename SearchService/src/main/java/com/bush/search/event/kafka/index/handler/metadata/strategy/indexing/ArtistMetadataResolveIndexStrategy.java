@@ -1,7 +1,7 @@
 package com.bush.search.event.kafka.index.handler.metadata.strategy.indexing;
 
-import com.bush.outbox.domain.entity.CrudOperationType;
 import com.bush.search.domain.index.ArtistPayload;
+import com.bush.search.domain.index.service.Operation;
 import com.bush.search.event.kafka.index.handler.strategy.crud.CrudOperationStrategyRegistry;
 import com.bush.search.event.kafka.index.handler.strategy.ResolveIndexStrategy;
 import com.bush.search.service.metadata.artist.ArtistService;
@@ -24,7 +24,7 @@ public class ArtistMetadataResolveIndexStrategy implements ResolveIndexStrategy 
     }
 
     @Override
-    public void indexObject(String jsonPayload, CrudOperationType operationType) {
+    public void indexObject(String jsonPayload, Operation operationType) {
         try {
             ArtistPayload artistPayload = objectMapper.readValue(jsonPayload, ArtistPayload.class);
             crudOperationStrategyRegistry.processStrategy(artistPayload, operationType, ArtistService.class);

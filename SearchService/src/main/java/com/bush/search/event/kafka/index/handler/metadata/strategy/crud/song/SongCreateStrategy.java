@@ -1,7 +1,7 @@
 package com.bush.search.event.kafka.index.handler.metadata.strategy.crud.song;
 
-import com.bush.outbox.domain.entity.CrudOperationType;
 import com.bush.search.domain.index.SongPayload;
+import com.bush.search.domain.index.service.Operation;
 import com.bush.search.event.kafka.index.handler.strategy.crud.AbstractCrudOperationStrategy;
 import com.bush.search.service.metadata.song.SongService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +13,7 @@ public class SongCreateStrategy extends AbstractCrudOperationStrategy<SongServic
     private SongService service;
 
     public SongCreateStrategy() {
-        super(CrudOperationType.C, SongService.class, SongPayload.class);
+        super(Operation.CREATE, SongService.class, SongPayload.class);
     }
 
     @Override
