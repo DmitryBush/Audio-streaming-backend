@@ -18,6 +18,6 @@ public class ArtistUpdateStrategy extends AbstractCrudOperationStrategy<ArtistSe
 
     @Override
     protected void processInternal(ArtistPayload payload) {
-
+        artistService.updateArtist(payload.artistId(), payload);
     }
 }

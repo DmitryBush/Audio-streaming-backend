@@ -27,4 +27,17 @@ public class GenreService {
         return genreRepository.findById(genreId)
                 .orElseThrow(NoSuchElementException::new);
     }
+
+    public void updateGenre(Short genreId, GenrePayload genrePayload) {
+        Optional.of(genreId)
+                .flatMap(genreRepository::findById)
+                .map(genre -> genreCreateMapper.mapToGenre(genrePayload))
+                .map(genreRepository::save);
+    }
+
+    public void deleteGenre(Short genreId) {
+        Optional.of(genreId)
+                .flatMap(genreRepository::findById)
+                .ifPresent(genreRepository::delete);
+    }
 }

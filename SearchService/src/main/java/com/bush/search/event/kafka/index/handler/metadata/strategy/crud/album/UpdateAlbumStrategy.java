@@ -18,6 +18,6 @@ public class UpdateAlbumStrategy extends AbstractCrudOperationStrategy<AlbumServ
 
     @Override
     protected void processInternal(AlbumPayload payload) {
-
+        albumService.updateAlbum(payload.id(), payload);
     }
 }

@@ -37,4 +37,17 @@ public class AlbumService {
         return albumRepository.findById(albumId)
                 .orElseThrow(NoSuchElementException::new);
     }
+
+    public void updateAlbum(Long albumId, AlbumPayload albumPayload) {
+        Optional.of(albumId)
+                .flatMap(albumRepository::findById)
+                .map(album -> albumCreateMapper.mapToAlbum(albumPayload))
+                .map(albumRepository::save);
+    }
+
+    public void deleteAlbum(Long albumId) {
+        Optional.of(albumId)
+                .flatMap(albumRepository::findById)
+                .ifPresent(albumRepository::delete);
+    }
 }

@@ -27,4 +27,17 @@ public class ArtistService {
         return artistRepository.findById(artistId)
                 .orElseThrow(NoSuchElementException::new);
     }
+
+    public void updateArtist(Long artistId, ArtistPayload artistPayload) {
+        Optional.of(artistId)
+                .flatMap(artistRepository::findById)
+                .map(artist -> artistCreateMapper.mapToArtist(artistPayload))
+                .map(artistRepository::save);
+    }
+
+    public void deleteArtist(Long artistId) {
+        Optional.of(artistId)
+                .flatMap(artistRepository::findById)
+                .ifPresent(artistRepository::delete);
+    }
 }

@@ -18,6 +18,6 @@ public class DeleteAlbumStrategy extends AbstractCrudOperationStrategy<AlbumServ
 
     @Override
     protected void processInternal(AlbumPayload payload) {
-
+        albumService.deleteAlbum(payload.id());
     }
 }

@@ -20,4 +20,17 @@ public class SongService {
                 .map(songCreateMapper::mapToSong)
                 .map(songRepository::save);
     }
+
+    public void updateSong(Long songId, SongPayload songPayload) {
+        Optional.of(songId)
+                .flatMap(songRepository::findById)
+                .map(song -> songCreateMapper.mapToSong(songPayload))
+                .map(songRepository::save);
+    }
+
+    public void deleteSong(Long songId) {
+        Optional.of(songId)
+                .flatMap(songRepository::findById)
+                .ifPresent(songRepository::delete);
+    }
 }

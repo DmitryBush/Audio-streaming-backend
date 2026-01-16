@@ -18,6 +18,6 @@ public class GenreDeleteStrategy extends AbstractCrudOperationStrategy<GenreServ
 
     @Override
     protected void processInternal(GenrePayload payload) {
-
+        genreService.deleteGenre(payload.genreId());
     }
 }
