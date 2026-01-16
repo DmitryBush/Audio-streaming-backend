@@ -9,11 +9,11 @@ import org.springframework.data.elasticsearch.repository.config.EnableElasticsea
 @Configuration
 @EnableElasticsearchRepositories(basePackages = "com.bush.search.repository")
 public class ElasticSearchConfig extends ElasticsearchConfiguration {
-    @Value("spring.elastic.url")
+    @Value("${spring.elastic.url}")
     private String elasticUrl;
-    @Value("spring.elastic.username")
+    @Value("${spring.elastic.username}")
     private String username;
-    @Value("spring.elastic.password")
+    @Value("${spring.elastic.password}")
     private String password;
 
     @Override
