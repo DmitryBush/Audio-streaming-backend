@@ -11,7 +11,15 @@ spring:
   elastic:
     url: localhost:9200
     username: elastic
-    password: elastic
+    password: elastic1
   debezium:
     url: http://localhost:8083
     request-body-path: classpath:init-scripts/debezium/*.json
+  kafka:
+    consumer:
+      bootstrap-servers: localhost:9092
+      trusted-packages: com.bush.search.event.kafka
+      group-id: reindexing-processing-group
+
+server:
+  port: 8082

@@ -27,6 +27,9 @@ logging:
       rizz:
         streamingservice: DEBUG
 
+server:
+  port: 8080
+
 storage-service:
   endpoint: http://127.0.0.1:9000
   access-key: minioadmin
