@@ -43,3 +43,6 @@ liquibase:
 
 outbox:
   transaction-manager-name: playlistTransactionManager
+
+server:
+  port: 8081
