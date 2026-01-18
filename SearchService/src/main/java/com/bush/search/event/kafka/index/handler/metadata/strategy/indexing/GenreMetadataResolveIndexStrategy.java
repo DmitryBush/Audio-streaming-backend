@@ -4,6 +4,7 @@ import com.bush.search.domain.index.GenrePayload;
 import com.bush.search.domain.index.service.Operation;
 import com.bush.search.event.kafka.index.handler.strategy.crud.CrudOperationStrategyRegistry;
 import com.bush.search.event.kafka.index.handler.strategy.ResolveIndexStrategy;
+import com.bush.search.service.metadata.genre.GenreService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +27,7 @@ public class GenreMetadataResolveIndexStrategy implements ResolveIndexStrategy {
     public void indexObject(String jsonPayload, Operation operationType) {
         try {
             GenrePayload genrePayload = objectMapper.readValue(jsonPayload, GenrePayload.class);
-            crudOperationStrategyRegistry.processStrategy(genrePayload, operationType, GenrePayload.class);
+            crudOperationStrategyRegistry.processStrategy(genrePayload, operationType, GenreService.class);
         } catch (JsonProcessingException e) {
             log.error("An error has occurred while parsing JSON - {}", e.getMessage());
             throw new RuntimeException(e);
