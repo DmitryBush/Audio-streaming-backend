@@ -14,6 +14,8 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 @Document(indexName = "metadata")
 public class Genre {
     @Id
+    private String id;
+    @Field(type = FieldType.Short)
     private Short genreId;
     @Field(type = FieldType.Text)
     private String name;

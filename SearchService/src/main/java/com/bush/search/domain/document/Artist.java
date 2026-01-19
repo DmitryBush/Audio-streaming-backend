@@ -14,6 +14,8 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 @Document(indexName = "metadata")
 public class Artist {
     @Id
+    private String id;
+    @Field(type = FieldType.Long)
     private Long artistId;
     @Field(type = FieldType.Text)
     private String name;
