@@ -19,6 +19,8 @@ public class Album {
     private LocalDate releaseDate;
     @Field(type = FieldType.Short)
     private Short discCount;
+    @Field(type = FieldType.Text)
+    private String coverArtUrl;
     @Field(type = FieldType.Nested)
     private Artist artist;
     @Field(type = FieldType.Nested)
