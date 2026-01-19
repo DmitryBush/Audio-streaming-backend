@@ -13,7 +13,7 @@ spring:
     username: elastic
     password: elastic1
   debezium:
-    url: http://localhost:8083
+    url: http://localhost:9083
     request-body-path: classpath:init-scripts/debezium/*.json
   kafka:
     consumer:

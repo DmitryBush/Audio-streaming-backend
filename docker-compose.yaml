@@ -112,7 +112,7 @@ services:
     debezium-reindex:
         image: quay.io/debezium/connect:3.3.2.Final
         ports:
-          - 8083:8083
+          - 9083:8083
         depends_on:
           kafka-broker-reindex:
             condition: service_healthy
