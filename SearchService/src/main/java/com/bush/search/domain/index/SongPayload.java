@@ -2,11 +2,11 @@ package com.bush.search.domain.index;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public record SongPayload(@JsonProperty("song_id") Long songId,
+public record SongPayload(@JsonProperty("id") Long songId,
                           String name,
-                          @JsonProperty("track_number_album") Short trackNumberAlbum,
+                          Short trackNumberAlbum,
                           Integer duration,
-                          @JsonProperty("disc_number") Short discNumber,
+                          Short discNumber,
                           @JsonProperty("artist") ArtistPayload artistPayload,
                           @JsonProperty("album") AlbumPayload albumPayload) {
 }

@@ -1,8 +1,6 @@
 package com.bush.search.domain.index;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-public record ArtistPayload(@JsonProperty("artist_id") Long artistId,
+public record ArtistPayload(Long id,
                             String name,
                             String biography) {
 }
