@@ -18,6 +18,6 @@ public class GenreUpdateStrategy extends AbstractCrudOperationStrategy<GenreServ
 
     @Override
     protected void processInternal(GenrePayload payload) {
-        genreService.updateGenre(payload.genreId(), payload);
+        genreService.updateGenre(payload.id(), payload);
     }
 }

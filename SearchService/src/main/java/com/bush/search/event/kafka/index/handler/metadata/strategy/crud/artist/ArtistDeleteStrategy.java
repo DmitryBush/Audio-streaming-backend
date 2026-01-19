@@ -18,6 +18,6 @@ public class ArtistDeleteStrategy extends AbstractCrudOperationStrategy<ArtistSe
 
     @Override
     protected void processInternal(ArtistPayload payload) {
-        artistService.deleteArtist(payload.artistId());
+        artistService.deleteArtist(payload.id());
     }
 }
