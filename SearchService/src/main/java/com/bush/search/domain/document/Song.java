@@ -15,7 +15,7 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 public class Song {
     @Id
     private String id;
-    @Field(type = FieldType.Long)
+    @Field(type = FieldType.Keyword)
     private Long songId;
     @Field(type = FieldType.Text)
     private String name;

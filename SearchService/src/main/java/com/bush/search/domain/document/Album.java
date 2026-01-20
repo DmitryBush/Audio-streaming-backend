@@ -17,7 +17,7 @@ import java.time.LocalDate;
 public class Album {
     @Id
     private String id;
-    @Field(type = FieldType.Long)
+    @Field(type = FieldType.Keyword)
     private Long albumId;
     @Field(type = FieldType.Text)
     private String name;
