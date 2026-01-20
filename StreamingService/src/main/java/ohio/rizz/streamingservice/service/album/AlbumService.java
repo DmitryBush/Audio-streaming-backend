@@ -1,5 +1,8 @@
 package ohio.rizz.streamingservice.service.album;
 
+import com.bush.outbox.domain.dto.OutboxRecordDto;
+import com.bush.outbox.domain.entity.CrudOperationType;
+import com.bush.outbox.service.OutboxService;
 import lombok.RequiredArgsConstructor;
 import ohio.rizz.streamingservice.Entities.Album;
 import ohio.rizz.streamingservice.Entities.Artist;
@@ -33,6 +36,7 @@ public class AlbumService {
     private final AlbumReadMapper albumReadMapper;
 
     private final ObjectStorageService objectStorageService;
+    private final OutboxService outboxService;
 
     @Transactional(propagation = Propagation.MANDATORY)
     public AlbumReadDto createAlbum(AlbumDto albumDto, Artist artist, Genre genre) {
@@ -46,6 +50,8 @@ public class AlbumService {
                             return album;
                         })
                         .map(albumRepository::save)
+                        .map(album -> outboxService.createRecord(
+                                new OutboxRecordDto<>("album", CrudOperationType.C, album)))
                         .map(albumReadMapper::mapToAlbumReadDto)
                         .orElseThrow());
     }

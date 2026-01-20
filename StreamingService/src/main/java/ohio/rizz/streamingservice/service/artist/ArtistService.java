@@ -1,5 +1,8 @@
 package ohio.rizz.streamingservice.service.artist;
 
+import com.bush.outbox.domain.dto.OutboxRecordDto;
+import com.bush.outbox.domain.entity.CrudOperationType;
+import com.bush.outbox.service.OutboxService;
 import lombok.RequiredArgsConstructor;
 import ohio.rizz.streamingservice.Entities.Artist;
 import ohio.rizz.streamingservice.Repositories.ArtistRepository;
@@ -22,6 +25,8 @@ import java.util.Optional;
 public class ArtistService {
     private final ArtistRepository artistRepository;
 
+    private final OutboxService outboxService;
+
     private final ArtistCreateMapper artistCreateMapper;
     private final ArtistReadMapper artistReadMapper;
 
@@ -34,6 +39,8 @@ public class ArtistService {
                         .of(artistDto)
                         .map(artistCreateMapper::mapToArtist)
                         .map(artistRepository::save)
+                        .map(artist -> outboxService.createRecord(
+                                new OutboxRecordDto<>("artist", CrudOperationType.C, artist)))
                         .map(artistReadMapper::mapToArtistReadMapper)
                         .orElseThrow());
     }

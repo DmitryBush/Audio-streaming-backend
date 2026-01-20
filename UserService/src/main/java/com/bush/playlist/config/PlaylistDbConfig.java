@@ -1,6 +1,5 @@
 package com.bush.playlist.config;
 
-import org.hibernate.jpa.HibernatePersistenceProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,7 +20,7 @@ import java.util.Objects;
 
 @Configuration
 @EnableJpaRepositories(
-        basePackages = "com.bush.playlist.repository",
+        basePackages = {"com.bush.playlist.repository", "com.bush.outbox.repository"},
         entityManagerFactoryRef = "playlistEntityManagerFactory",
         transactionManagerRef = "playlistTransactionManager"
 )
@@ -47,7 +46,7 @@ public class PlaylistDbConfig {
     playlistEntityManagerFactory(@Autowired @Qualifier("playlistDataSource") DataSource dataSource) {
         LocalContainerEntityManagerFactoryBean entityManagerFactoryBean = new LocalContainerEntityManagerFactoryBean();
         entityManagerFactoryBean.setDataSource(dataSource);
-        entityManagerFactoryBean.setPackagesToScan("com.bush.playlist.entity");
+        entityManagerFactoryBean.setPackagesToScan("com.bush.playlist.entity", "com.bush.outbox.domain.entity");
         entityManagerFactoryBean.setPersistenceUnitName("playlist");
 
         HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
