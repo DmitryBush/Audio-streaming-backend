@@ -1,6 +1,6 @@
-package com.bush.search.controller;
+package com.bush.search.controller.metadata;
 
-import com.bush.search.domain.dto.SongSearchResultDto;
+import com.bush.search.domain.dto.metadata.SongSearchResultDto;
 import com.bush.search.service.metadata.song.SongService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -16,7 +16,7 @@ import java.util.List;
 public class SongSearchRestController {
     private final SongService songService;
 
-    @GetMapping
+    @GetMapping("/name")
     public ResponseEntity<List<SongSearchResultDto>> findByNameContaining(String name) {
         return ResponseEntity.ok(songService.findByNameContaining(name));
     }

@@ -1,16 +1,15 @@
 package com.bush.search.service.metadata.album;
 
 import com.bush.search.domain.document.Album;
-import com.bush.search.domain.document.Artist;
-import com.bush.search.domain.document.Genre;
+import com.bush.search.domain.dto.metadata.AlbumSearchResultDto;
 import com.bush.search.domain.index.AlbumPayload;
 import com.bush.search.repository.AlbumRepository;
 import com.bush.search.service.metadata.album.mapper.AlbumCreateMapper;
-import com.bush.search.service.metadata.artist.ArtistService;
-import com.bush.search.service.metadata.genre.GenreService;
+import com.bush.search.service.metadata.album.mapper.AlbumReadMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
@@ -20,6 +19,7 @@ public class AlbumService {
     private final AlbumRepository albumRepository;
 
     private final AlbumCreateMapper albumCreateMapper;
+    private final AlbumReadMapper albumReadMapper;
 
     public void createAlbum(AlbumPayload albumPayload) {
         Optional.of(albumPayload)
@@ -43,5 +43,11 @@ public class AlbumService {
         Optional.of(albumId)
                 .flatMap(albumRepository::findById)
                 .ifPresent(albumRepository::delete);
+    }
+
+    public List<AlbumSearchResultDto> findByNameContaining(String name) {
+        return albumRepository.findByNameContainingIgnoreCase(name).stream()
+                .map(albumReadMapper::mapToAlbumSearchResultDto)
+                .toList();
     }
 }
