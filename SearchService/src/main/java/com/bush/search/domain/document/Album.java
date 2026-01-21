@@ -13,7 +13,7 @@ import java.time.LocalDate;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Document(indexName = "metadata")
+@Document(indexName = "album")
 public class Album {
     @Id
     private String id;
