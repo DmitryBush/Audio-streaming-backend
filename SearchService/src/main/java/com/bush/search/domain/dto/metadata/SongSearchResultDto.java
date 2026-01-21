@@ -1,4 +1,4 @@
-package com.bush.search.domain.dto;
+package com.bush.search.domain.dto.metadata;
 
 public record SongSearchResultDto(Long songId,
                                   String name,

@@ -1,7 +1,7 @@
 package com.bush.search.service.metadata.song.mapper;
 
 import com.bush.search.domain.document.Song;
-import com.bush.search.domain.dto.SongSearchResultDto;
+import com.bush.search.domain.dto.metadata.SongSearchResultDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;
 

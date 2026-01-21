@@ -1,6 +1,6 @@
 package com.bush.search.service.metadata.song;
 
-import com.bush.search.domain.dto.SongSearchResultDto;
+import com.bush.search.domain.dto.metadata.SongSearchResultDto;
 import com.bush.search.domain.index.SongPayload;
 import com.bush.search.repository.SongRepository;
 import com.bush.search.service.metadata.song.mapper.SongCreateMapper;
