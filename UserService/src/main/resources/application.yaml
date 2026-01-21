@@ -1,4 +1,6 @@
 spring:
+  application:
+    name: UserService
   datasource:
     user:
       url: ${POSTGRES_USER_JDBC_URL}
