@@ -21,6 +21,3 @@ spring:
     consumer:
       bootstrap-servers: ${KAFKA_REINDEX_BOOTSTRAP_SERVERS}
       trusted-packages: com.bush.search.event.kafka
-
-server:
-  port: 8082
