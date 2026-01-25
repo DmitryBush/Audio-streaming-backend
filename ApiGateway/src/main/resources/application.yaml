@@ -3,3 +3,21 @@ server:
 spring:
   application:
     name: ApiGateway
+  security:
+    oauth2:
+      client:
+        registration:
+          auth-client:
+            provider: security-auth-provider
+            client-id: gateway-client
+            client-secret: openid-connect
+            authorization-grant-type: authorization_code
+            redirect-uri: {baseUrl}/login/oauth2/code/{registrationId}
+            scope: openid, api.read
+        provider:
+          security-auth-provider:
+            authorization-uri: lb://UserService/oauth2/authorize
+            token-uri: lb://UserService/oauth2/token
+            user-info-uri: lb://UserService/userinfo
+            user-name-attribute: sub
+            jwk-set-uri: lb://UserService/.well-known/jwks.json
