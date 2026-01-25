@@ -1,0 +1,27 @@
+spring:
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+  datasource:
+    url: ${POSTGRES_STREAMING_JDBC_URL}
+    username: ${POSTGRES_USERNAME}
+    password: ${POSTGRES_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    open-in-view: false
+    properties.hibernate:
+      show_sql: true
+      format_sql: true
+      hbm2ddl.auto: validate
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+  cache:
+    type: redis
+
+storage-service:
+  endpoint: ${OBJECT_STORAGE_URL}
+  access-key: ${OBJECT_STORAGE_ACCESS_KEY}
+  secret-key: ${OBJECT_STORAGE_SECRET_KEY}
