@@ -14,8 +14,11 @@ import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.Map;
+import java.util.Objects;
 
 @Slf4j
 @Service
@@ -46,9 +49,9 @@ public class DebeziumConnectorInitializerService {
         ResourcePatternResolver patternResolver = new PathMatchingResourcePatternResolver();
         Resource[] jsonRequestResources = patternResolver.getResources(requestBodyPath);
         for (Resource resource : jsonRequestResources) {
-            File file = resource.getFile();
-            if (resource.getFile().getName().endsWith(".json")) {
-                createConnector(file.getName().substring(0, file.getName().indexOf('.')), resource);
+            String filename = Objects.requireNonNull(resource.getFilename());
+            if (filename.endsWith(".json")) {
+                createConnector(filename.substring(0, filename.indexOf('.')), resource);
             }
         }
     }
