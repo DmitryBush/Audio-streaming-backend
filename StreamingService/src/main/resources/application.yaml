@@ -25,3 +25,8 @@ storage-service:
   endpoint: ${OBJECT_STORAGE_URL}
   access-key: ${OBJECT_STORAGE_ACCESS_KEY}
   secret-key: ${OBJECT_STORAGE_SECRET_KEY}
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URL}

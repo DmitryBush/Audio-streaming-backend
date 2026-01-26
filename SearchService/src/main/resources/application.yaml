@@ -16,8 +16,13 @@ spring:
     password: ${ELASTICSEARCH_PASSWORD}
   debezium:
     url: ${DEBEZIUM_URL}
-    request-body-path: classpath:init-scripts/debezium/*.json
+    request-body-path: classpath*:init-scripts/debezium/*.json
   kafka:
     consumer:
       bootstrap-servers: ${KAFKA_REINDEX_BOOTSTRAP_SERVERS}
       trusted-packages: com.bush.search.event.kafka
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URL}
