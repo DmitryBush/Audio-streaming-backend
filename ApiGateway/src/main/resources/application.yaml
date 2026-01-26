@@ -1,0 +1,10 @@
+server:
+  port: 8765
+spring:
+  application:
+    name: ApiGateway
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URL}

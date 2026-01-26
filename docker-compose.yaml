@@ -4,8 +4,6 @@ services:
         image: redis:8.2-alpine
         restart: always
         command: redis-server --save 60 1 --loglevel warning
-        ports:
-          - "6379:6379"
         healthcheck:
           test: ["CMD", "redis-cli", "ping"]
           interval: 30s
@@ -22,8 +20,6 @@ services:
         environment:
           - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
           - POSTGRES_MULTIPLE_DATABASES=${POSTGRES_MULTIPLE_DATABASES}
-        ports:
-          - "5432:5432"
         healthcheck:
           test: ["CMD-SHELL", "pg_isready", "-U", "$${POSTGRES_USERNAME}"]
           interval: 30s
@@ -40,8 +36,6 @@ services:
         image: minio/minio:RELEASE.2025-09-07T16-13-09Z
         restart: always
         command: server /data
-        ports:
-          - "9000:9000"
         healthcheck:
           test: ["CMD", "mc", "ready", "local"]
           interval: 30s
@@ -61,7 +55,7 @@ services:
         - xpack.security.enabled=true
         - xpack.security.http.ssl.enabled=false
         - ES_JAVA_OPTS=-Xms512m -Xmx512m
-        - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+        - ELASTIC_PASSWORD=${ELASTICSEARCH_PASSWORD}
       healthcheck:
         test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health | grep -vq '\"status\":\"red\"'"]
         interval: 30s       
@@ -83,14 +77,12 @@ services:
     # Kafka cluster
     kafka-broker-reindex:
         image: quay.io/debezium/kafka:latest
-        ports:
-          - 9096:9096
         environment:
           KAFKA_NODE_ID: 1
           KAFKA_KRAFT_CLUSTER_ID: ${KAFKA_CLUSTER_ID}
           KAFKA_PROCESS_ROLES: broker,controller
           KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9096
-          KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-broker-reindex:9092,EXTERNAL://${HOSTNAME:-localhost}:9096
+          KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-broker-reindex:9092,EXTERNAL://${KAFKA_HOSTNAME:-localhost}:9096
           KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
           KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
           KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka-broker-reindex:9093
@@ -111,8 +103,6 @@ services:
     # Kafka connect with debezium
     debezium-reindex:
         image: quay.io/debezium/connect:3.3.2.Final
-        ports:
-          - 9083:8083
         depends_on:
           kafka-broker-reindex:
             condition: service_healthy
@@ -130,6 +120,110 @@ services:
           timeout: 10s
           retries: 5
           start_period: 1m
+    
+    # Audio streaming microservices
+    streaming-service:
+        image: sound-flow-streaming-service:latest
+        restart: always
+        environment:
+          - POSTGRES_STREAMING_JDBC_URL=${POSTGRES_STREAMING_JDBC_URL}
+          - POSTGRES_USERNAME=${POSTGRES_USERNAME}
+          - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+          - REDIS_HOST=${REDIS_HOST}
+          - REDIS_PORT=${REDIS_PORT}
+          - OBJECT_STORAGE_URL=${OBJECT_STORAGE_URL}
+          - OBJECT_STORAGE_ACCESS_KEY=${OBJECT_STORAGE_ACCESS_KEY}
+          - OBJECT_STORAGE_SECRET_KEY=${OBJECT_STORAGE_SECRET_KEY}
+          - EUREKA_URL=http://registry-service:8761/eureka/
+        healthcheck:
+          test: ["CMD", "wget", "--no-verbose", "--spider", "--tries=1", "http://localhost:8080/actuator/health"]
+          interval: 30s
+          timeout: 10s
+          retries: 5
+          start_period: 15s
+        depends_on:
+          postgres:
+            condition: service_healthy
+          redis:
+            condition: service_healthy
+          minio:
+            condition: service_healthy
+    user-service:
+        image: sound-flow-user-service:latest
+        restart: always
+        environment:
+          - SECRET_SIGNING_KEY=${SECRET_SIGNING_KEY}
+          - POSTGRES_USER_JDBC_URL=${POSTGRES_USER_JDBC_URL}
+          - POSTGRES_PLAYLIST_JDBC_URL=${POSTGRES_PLAYLIST_JDBC_URL}
+          - POSTGRES_USERNAME=${POSTGRES_USERNAME}
+          - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+          - REDIS_HOST=${REDIS_HOST}
+          - REDIS_PORT=${REDIS_PORT}
+          - EUREKA_URL=http://registry-service:8761/eureka/
+        healthcheck:
+          test: ["CMD", "wget", "--no-verbose", "--spider", "--tries=1", "http://localhost:8080/actuator/health"]
+          interval: 1m30s
+          timeout: 10s
+          retries: 5
+          start_period: 25s
+        depends_on:
+          postgres:
+            condition: service_healthy
+          redis:
+            condition: service_healthy
+    search-service:
+      image: sound-flow-search-service:latest
+      restart: always
+      environment:
+        - POSTGRES_STREAMING_NAME=${POSTGRES_STREAMING_NAME}
+        - POSTGRES_PLAYLIST_NAME=${POSTGRES_PLAYLIST_NAME}
+        - POSTGRES_USERNAME=${POSTGRES_USERNAME}
+        - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+        - ELASTICSEARCH_URL=${ELASTICSEARCH_URL}
+        - ELASTICSEARCH_USERNAME=${ELASTICSEARCH_USERNAME}
+        - ELASTICSEARCH_PASSWORD=${ELASTICSEARCH_PASSWORD}
+        - DEBEZIUM_URL=${DEBEZIUM_URL}
+        - KAFKA_REINDEX_BOOTSTRAP_SERVERS=${KAFKA_REINDEX_BOOTSTRAP_SERVERS}
+        - EUREKA_URL=http://registry-service:8761/eureka/
+      healthcheck:
+        test: ["CMD", "wget", "--no-verbose", "--spider", "--tries=1", "http://localhost:8080/actuator/health"]
+        interval: 30s
+        timeout: 10s
+        retries: 5
+        start_period: 15s
+      depends_on:
+        postgres:
+          condition: service_healthy
+        kafka-broker-reindex:
+          condition: service_healthy
+        debezium-reindex:
+          condition: service_healthy
+    registry-service:
+      image: sound-flow-registry-service:latest
+      restart: always
+      healthcheck:
+        test: ["CMD", "wget", "--no-verbose", "--spider", "--tries=1", "http://localhost:8761/actuator/health"]
+        interval: 30s
+        timeout: 10s
+        retries: 5
+        start_period: 15s
+    gateway-service:
+      image: sound-flow-gateway-service:latest
+      restart: always
+      ports:
+        - 8765:8765
+      environment:
+        - EUREKA_URL=http://registry-service:8761/eureka/
+      healthcheck:
+        test: ["CMD", "wget", "--no-verbose", "--spider", "--tries=1", "http://localhost:8765/actuator/health"]
+        interval: 30s
+        timeout: 10s
+        retries: 5
+        start_period: 15s
+      depends_on:
+        registry-service:
+          condition: service_healthy
+    
 
 volumes:
   db_data:
@@ -137,5 +231,3 @@ volumes:
   storage_data:
   elastic_search_data:
   kafka_reindex_data_1:
-  kafka_reindex_data_2:
-  kafka_reindex_data_3:

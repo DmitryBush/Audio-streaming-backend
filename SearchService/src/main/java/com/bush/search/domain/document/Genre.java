@@ -11,7 +11,7 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Document(indexName = "metadata")
+@Document(indexName = "genre")
 public class Genre {
     @Id
     private String id;
