@@ -66,3 +66,7 @@ dependencies {
 tasks.test {
     useJUnitPlatform()
 }
+
+springBoot {
+    mainClass = "com.bush.UserServiceApplication"
+}

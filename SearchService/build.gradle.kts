@@ -54,3 +54,5 @@ dependencies {
 tasks.test {
     useJUnitPlatform()
 }
+
+springBoot { mainClass = "com.bush.search.SearchServiceApplication" }

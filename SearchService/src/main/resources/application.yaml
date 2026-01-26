@@ -1,0 +1,28 @@
+spring:
+  application:
+    name: SearchService
+  datasource:
+    metadata:
+      name: ${POSTGRES_STREAMING_NAME}
+      username: ${POSTGRES_USERNAME}
+      password: ${POSTGRES_PASSWORD}
+    playlist:
+      name: ${POSTGRES_PLAYLIST_NAME}
+      username: ${POSTGRES_USERNAME}
+      password: ${POSTGRES_PASSWORD}
+  elastic:
+    url: ${ELASTICSEARCH_URL}
+    username: ${ELASTICSEARCH_USERNAME}
+    password: ${ELASTICSEARCH_PASSWORD}
+  debezium:
+    url: ${DEBEZIUM_URL}
+    request-body-path: classpath*:init-scripts/debezium/*.json
+  kafka:
+    consumer:
+      bootstrap-servers: ${KAFKA_REINDEX_BOOTSTRAP_SERVERS}
+      trusted-packages: com.bush.search.event.kafka
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URL}
