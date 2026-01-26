@@ -7,6 +7,12 @@ plugins {
 group = "com.bush"
 version = "unspecified"
 
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
 repositories {
     mavenCentral()
 }
