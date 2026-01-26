@@ -3,11 +3,11 @@ spring:
     name: SearchService
   datasource:
     metadata:
-      url: ${POSTGRES_STREAMING_JDBC_URL}
+      name: ${POSTGRES_STREAMING_NAME}
       username: ${POSTGRES_USERNAME}
       password: ${POSTGRES_PASSWORD}
     playlist:
-      url: ${POSTGRES_PLAYLIST_JDBC_URL}
+      name: ${POSTGRES_PLAYLIST_NAME}
       username: ${POSTGRES_USERNAME}
       password: ${POSTGRES_PASSWORD}
   elastic:
