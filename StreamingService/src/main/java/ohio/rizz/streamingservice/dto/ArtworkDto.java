@@ -1,4 +1,4 @@
 package ohio.rizz.streamingservice.dto;
 
-public record ArtworkDto(String objectReference, byte[] binaryArray) {
+public record ArtworkDto(String objectStorageLink, byte[] binaryArray) {
 }

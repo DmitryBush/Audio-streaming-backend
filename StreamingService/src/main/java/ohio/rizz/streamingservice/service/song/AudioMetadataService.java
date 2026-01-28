@@ -2,7 +2,7 @@ package ohio.rizz.streamingservice.service.song;
 
 import lombok.RequiredArgsConstructor;
 import ohio.rizz.streamingservice.Repositories.AudioMetadataRepository;
-import ohio.rizz.streamingservice.dto.song.AudioMetadataDto;
+import ohio.rizz.streamingservice.dto.song.SongStreamingMetadataDto;
 import ohio.rizz.streamingservice.service.song.mapper.MetadataMapper;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -17,7 +17,7 @@ public class AudioMetadataService {
 
     private final MetadataMapper metadataMapper;
 
-    public AudioMetadataDto createSongMetadata(AudioMetadataDto createDto) {
+    public SongStreamingMetadataDto createSongMetadata(SongStreamingMetadataDto createDto) {
         return Optional.ofNullable(createDto)
                 .map(metadataMapper::mapToAudioMetadata)
                 .map(metadataRepository::save)
@@ -26,7 +26,7 @@ public class AudioMetadataService {
     }
 
     @Cacheable(key = "#id", cacheNames = "metadata")
-    public AudioMetadataDto findMetadataById(Long id) {
+    public SongStreamingMetadataDto findMetadataById(Long id) {
         return metadataRepository.findById(id)
                 .map(metadataMapper::mapToAudioMetadataDto)
                 .orElseThrow(NoSuchElementException::new);

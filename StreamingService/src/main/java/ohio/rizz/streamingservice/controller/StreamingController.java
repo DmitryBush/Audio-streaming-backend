@@ -2,11 +2,9 @@ package ohio.rizz.streamingservice.controller;
 
 import lombok.RequiredArgsConstructor;
 import ohio.rizz.streamingservice.service.song.AudioMetadataService;
-import ohio.rizz.streamingservice.service.song.SongService;
 import ohio.rizz.streamingservice.service.storage.ObjectStorageService;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.*;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.core.io.Resource;
 
@@ -37,7 +35,7 @@ public class StreamingController {
 
             if (ranges.isEmpty()) {
                 InputStreamResource resource = objectStorageService.loadStreamResource(
-                        "audio", metadata.objectPath(), 0L, (long) maxChunkSizeBytes);
+                        "audio", metadata.objectStorageLink(), 0L, (long) maxChunkSizeBytes);
 
                 return ResponseEntity.ok()
                         .contentType(MediaType.parseMediaType("audio/flac"))
@@ -51,7 +49,7 @@ public class StreamingController {
                 long rangeLength = Math.min(end - start + 1, maxChunkSizeBytes);
 
                 InputStreamResource resource = objectStorageService.loadStreamResource(
-                        "audio", metadata.objectPath(), start, rangeLength);
+                        "audio", metadata.objectStorageLink(), start, rangeLength);
 
                 return ResponseEntity.status(HttpStatus.PARTIAL_CONTENT)
                         .contentType(MediaType.parseMediaType("audio/flac"))
