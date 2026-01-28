@@ -19,6 +19,9 @@ import org.hibernate.type.SqlTypes;
 import java.time.ZonedDateTime;
 import java.util.UUID;
 
+/**
+ * Entity class that collects general information for outbox pattern
+ */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -31,6 +34,9 @@ public class OutboxRecord {
     @UuidGenerator(algorithm = UuidTimeEpochGeneratorAdapter.class)
     @JdbcTypeCode(SqlTypes.UUID)
     private UUID operationId;
+    /**
+     * Domain entity name
+     */
     @Column(name = "object_name", nullable = false)
     private String objectName;
     @Column(name = "operation_type")
@@ -38,6 +44,9 @@ public class OutboxRecord {
     private CrudOperationType operationType;
     @Column(name = "created_at", nullable = false)
     private ZonedDateTime createdAt;
+    /**
+     * Target domain record, which was serialized to JSON
+     */
     @Column(nullable = false)
     private String payload;
 }

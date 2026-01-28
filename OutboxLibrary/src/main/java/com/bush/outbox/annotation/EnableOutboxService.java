@@ -8,6 +8,9 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * Annotation that enables outbox service configuration. Without this annotation service will not work properly
+ */
 @Import(OutboxAutoConfiguration.class)
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
