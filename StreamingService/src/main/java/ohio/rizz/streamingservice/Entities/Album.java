@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
-import java.time.Year;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,7 +26,7 @@ public class Album {
     private LocalDate releaseDate;
 
     @Column(name = "cover_art_url")
-    private String coverArtUrl;
+    private String coverArtStorageLink;
 
     @Column(name = "disc_count")
     private Short discCount;
