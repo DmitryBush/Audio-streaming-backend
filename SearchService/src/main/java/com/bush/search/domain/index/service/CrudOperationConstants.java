@@ -5,9 +5,12 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * Constants used to classify operation in change data capture event
+ */
 @RequiredArgsConstructor
 @Getter
-public enum Operation {
+public enum CrudOperationConstants {
     CREATE("C"), READ("R"), UPDATE("U"), DELETE("D");
 
     private final String code;
@@ -18,10 +21,10 @@ public enum Operation {
     }
 
     @JsonCreator
-    public static Operation fromCode(String code) {
-        for (Operation operation : Operation.values()) {
-            if (operation.code.equals(code)) {
-                return operation;
+    public static CrudOperationConstants fromCode(String code) {
+        for (CrudOperationConstants crudOperationConstants : CrudOperationConstants.values()) {
+            if (crudOperationConstants.code.equals(code)) {
+                return crudOperationConstants;
             }
         }
         throw new IllegalArgumentException("Unknown CRUD operation");

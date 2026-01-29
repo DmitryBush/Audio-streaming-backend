@@ -23,7 +23,7 @@ public class PlaylistCdcEventHandler implements CdcEventHandler<PlaylistPayload>
     @KafkaHandler
     @Override
     public void handle(@Payload ChangeDataEvent<PlaylistPayload> changeDataEvent) {
-        crudOperationStrategyRegistry.processStrategy(changeDataEvent.payload(), changeDataEvent.operationType(),
+        crudOperationStrategyRegistry.processStrategy(changeDataEvent.payload(), changeDataEvent.crudOperationConstantsType(),
                 PlaylistService.class);
     }
 }
