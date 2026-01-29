@@ -26,6 +26,12 @@ storage-service:
   access-key: ${OBJECT_STORAGE_ACCESS_KEY}
   secret-key: ${OBJECT_STORAGE_SECRET_KEY}
 
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
 eureka:
   client:
     service-url:

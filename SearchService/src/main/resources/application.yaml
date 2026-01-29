@@ -22,6 +22,12 @@ spring:
       bootstrap-servers: ${KAFKA_REINDEX_BOOTSTRAP_SERVERS}
       trusted-packages: com.bush.search.event.kafka
 
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
 eureka:
   client:
     service-url:
