@@ -15,17 +15,34 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Objects;
 
+/**
+ * Service for file system operations
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class FileSystemService {
     private final FileNameValidator fileNameValidator;
 
+    /**
+     * A method for creating a temporary file by {@link MultipartFile} and suffix
+     * @param multipartFile File coming from the request
+     * @param suffix The string specified at the end of the file name
+     * @return Temporal file
+     * @implNote Temporal file will always be deleted upon successful exit from the application
+     */
     public File createTemporalFile(MultipartFile multipartFile, String suffix) {
         var filename = multipartFile.getOriginalFilename();
         return getTemporalFile(filename, suffix);
     }
 
+    /**
+     * A method for creating a temporary file by filename and suffix
+     * @param filename Filename specified in {@link String}
+     * @param suffix The {@link String} specified at the end of the file name
+     * @return Temporal file
+     * @implNote Temporal file will always be deleted upon successful exit from the application
+     */
     public File createTemporalFile(String filename, String suffix) {
         return getTemporalFile(filename, suffix);
     }
