@@ -1,7 +1,7 @@
 package com.bush.search.event.kafka.index.handler.metadata.strategy.crud.album;
 
 import com.bush.search.domain.index.AlbumPayload;
-import com.bush.search.domain.index.service.Operation;
+import com.bush.search.domain.index.service.CrudOperationConstants;
 import com.bush.search.event.kafka.index.handler.strategy.crud.AbstractCrudOperationStrategy;
 import com.bush.search.service.metadata.album.AlbumService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +13,7 @@ public class CreateAlbumStrategy extends AbstractCrudOperationStrategy<AlbumServ
     private AlbumService albumService;
 
     public CreateAlbumStrategy() {
-        super(Operation.CREATE, AlbumService.class, AlbumPayload.class);
+        super(CrudOperationConstants.CREATE, AlbumService.class, AlbumPayload.class);
     }
 
     @Override

@@ -1,7 +1,7 @@
 package com.bush.search.event.kafka.index.handler.playlist.strategy.crud;
 
 import com.bush.search.domain.index.PlaylistPayload;
-import com.bush.search.domain.index.service.Operation;
+import com.bush.search.domain.index.service.CrudOperationConstants;
 import com.bush.search.event.kafka.index.handler.strategy.crud.AbstractCrudOperationStrategy;
 import com.bush.search.service.playlist.PlaylistService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +13,7 @@ public class PlaylistUpdateStrategy extends AbstractCrudOperationStrategy<Playli
     private PlaylistService playlistService;
 
     public PlaylistUpdateStrategy() {
-        super(Operation.UPDATE, PlaylistService.class, PlaylistPayload.class);
+        super(CrudOperationConstants.UPDATE, PlaylistService.class, PlaylistPayload.class);
     }
 
     @Override

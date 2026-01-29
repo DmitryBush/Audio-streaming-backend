@@ -19,7 +19,7 @@ public class MetadataCdcEventHandler implements CdcEventHandler<String> {
     @KafkaHandler
     @Override
     public void handle(@Payload ChangeDataEvent<String> changeDataEvent) {
-        resolveIndexStrategyRegistry.resolveIndexStrategy(changeDataEvent.payload(), changeDataEvent.operationType(),
+        resolveIndexStrategyRegistry.resolveIndexStrategy(changeDataEvent.payload(), changeDataEvent.crudOperationConstantsType(),
                 changeDataEvent.objectName());
     }
 }
