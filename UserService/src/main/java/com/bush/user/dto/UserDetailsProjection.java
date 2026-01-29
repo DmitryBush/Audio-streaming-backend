@@ -7,6 +7,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 
+/**
+ * The projection used when it is impossible to get {@link UserDetails} using Spring Security
+ */
 @Data
 @AllArgsConstructor
 public class UserDetailsProjection implements UserDetails {
