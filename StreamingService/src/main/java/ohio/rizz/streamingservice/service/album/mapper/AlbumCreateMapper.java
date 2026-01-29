@@ -9,6 +9,6 @@ import org.mapstruct.ReportingPolicy;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING, unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface AlbumCreateMapper {
-    @Mapping(target = "coverArtUrl", source = "artworkDto.objectStorageLink")
+    @Mapping(target = "coverArtStorageLink", source = "artworkDto.objectStorageLink")
     Album mapToAlbum(AlbumDto albumDto);
 }
