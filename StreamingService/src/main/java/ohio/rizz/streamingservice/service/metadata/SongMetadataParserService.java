@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import ohio.rizz.streamingservice.dto.*;
 import ohio.rizz.streamingservice.dto.song.SongDto;
 import ohio.rizz.streamingservice.service.metadata.exception.AbsentImportantMetadataException;
-import ohio.rizz.streamingservice.service.type.ContentTypeService;
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.audio.AudioHeader;
@@ -21,7 +20,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.Objects;
 import java.util.Optional;
@@ -31,7 +29,7 @@ import java.util.regex.Pattern;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class MetadataParserService {
+public class SongMetadataParserService {
     private final Pattern metadataPattern = Pattern.compile("(?<=\")[^\"]+?(?=\")");
 
     public SongDto extractMetadataFromFile(File file) {
@@ -42,7 +40,7 @@ public class MetadataParserService {
             var artist = getArtistDto(metadata.tag());
             return getSongDto(metadata.tag(), metadata.header(), artist, album);
         } catch (AbsentImportantMetadataException e) {
-            String songObjectReference = getObjectReference("track", file.getName());
+            String songObjectReference = getObjectStorageLink("track", file.getName());
             return new SongDto(file.getName(), null, metadata.header().getTrackLength(),
                                null, songObjectReference, null, null);
         }
@@ -65,7 +63,7 @@ public class MetadataParserService {
     private AlbumDto getAlbumDto(Tag tag) {
         var name = Optional.ofNullable(tag.getFirstField(FieldKey.ALBUM))
                 .map(TagField::toString)
-                .map(MetadataParserService::removeZeroBit)
+                .map(SongMetadataParserService::removeZeroBit)
                 .map(this::extractMetadataText)
                 .orElse(null);
         if (Objects.isNull(name)) {
@@ -73,12 +71,12 @@ public class MetadataParserService {
         }
 
         var artworkDto = Optional.ofNullable(tag.getFirstArtwork())
-                .map(artwork -> new ArtworkDto(getObjectReference("art", name), artwork.getBinaryData()))
+                .map(artwork -> new ArtworkDto(getObjectStorageLink("art", name), artwork.getBinaryData()))
                 .orElse(null);
 
         var releaseDate = Optional.ofNullable(tag.getFirstField(FieldKey.YEAR))
                 .map(TagField::toString)
-                .map(MetadataParserService::removeZeroBit)
+                .map(SongMetadataParserService::removeZeroBit)
                 .map(this::extractMetadataText)
                 .map(year -> String.format("%s-01-01", year))
                 .map(LocalDate::parse)
@@ -86,7 +84,7 @@ public class MetadataParserService {
         var genre = Optional.ofNullable(tag.getFirstField(FieldKey.GENRE))
                 .map(TagField::toString)
                 .map(s -> s.isBlank() ? null : s)
-                .map(MetadataParserService::removeZeroBit)
+                .map(SongMetadataParserService::removeZeroBit)
                 .map(this::extractMetadataText)
                 .map(GenreDto::new)
                 .orElse(null);
@@ -106,7 +104,7 @@ public class MetadataParserService {
     private ArtistDto getArtistDto(Tag tag) {
         var name = Optional.ofNullable(tag.getFirstField(FieldKey.ARTIST))
                 .map(TagField::toString)
-                .map(MetadataParserService::removeZeroBit)
+                .map(SongMetadataParserService::removeZeroBit)
                 .map(this::extractMetadataText)
                 .orElse(null);
         if (Objects.isNull(name)) {
@@ -120,10 +118,10 @@ public class MetadataParserService {
     private SongDto getSongDto(Tag tag, AudioHeader header, ArtistDto artist, AlbumDto album) {
         var name = Optional.ofNullable(tag.getFirstField(FieldKey.TITLE))
                 .map(TagField::toString)
-                .map(MetadataParserService::removeZeroBit)
+                .map(SongMetadataParserService::removeZeroBit)
                 .map(this::extractMetadataText)
                 .orElseThrow(() -> new AbsentImportantMetadataException("The track title must be specified"));
-        String songObjectReference = getObjectReference("track", name);
+        String songObjectReference = getObjectStorageLink("track", name);
         var duration = header.getTrackLength();
         var trackNumberAlbum = Optional.ofNullable(tag.getFirst(FieldKey.TRACK))
                 .map(s -> s.isBlank() ? null : s)
@@ -140,7 +138,7 @@ public class MetadataParserService {
     }
 
     @NotNull
-    private static String getObjectReference(String topic, String objectName) {
+    private static String getObjectStorageLink(String topic, String objectName) {
         return String.format("%s/%s/audio", topic, UUID.nameUUIDFromBytes(objectName.getBytes()));
     }
 
@@ -148,17 +146,29 @@ public class MetadataParserService {
         return s.replaceAll("\\x00", "");
     }
 
+    /**
+     * Method extracts payload from {@link String} received from {@link TagField}.
+     * In some cases {@link TagField} can produce raw information like {@code Text="Album"}
+     * @param s Possible raw string tag field
+     * @return Processed payload
+     */
     private String extractMetadataText(String s) {
         if (s.startsWith("Text=")) {
             var textMatcher = metadataPattern.matcher(s);
             if (textMatcher.find()) {
                 return s.substring(textMatcher.start(), textMatcher.end());
             }
-            throw new AbsentImportantMetadataException("The track title must be specified");
+            throw new IllegalArgumentException("Unknown how process current raw string");
         }
         return s;
     }
 
+    /**
+     * Method process raw string from {@link TagField} to {@link DiscMetadata} structure.
+     * Different metadata encoders provide their own types of number separators, which should be processed
+     * @param rawData raw string from {@link TagField}
+     * @return Structured {@link DiscMetadata}, separated on {@code currentDisk} and {@code totalDisk}
+     */
     private DiscMetadata getDiskMetadata(String rawData) {
         if (rawData.isBlank()) {
             return null;
