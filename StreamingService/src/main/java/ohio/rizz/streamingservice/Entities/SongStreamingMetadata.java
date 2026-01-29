@@ -5,12 +5,15 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Essential track information for streaming
+ */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
 @Table(name = "audio_metadata")
-public class SongMetadata {
+public class SongStreamingMetadata {
     @Id
     private Long id;
     @Column(nullable = false)

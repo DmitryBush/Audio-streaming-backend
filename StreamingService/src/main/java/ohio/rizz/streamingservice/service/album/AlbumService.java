@@ -84,7 +84,7 @@ public class AlbumService {
     @Cacheable(key = "#id", cacheNames = "albums:artworks")
     private String getAlbumArtworkObjectReference(Long id) {
         return albumRepository.findById(id)
-                .map(Album::getCoverArtUrl)
+                .map(Album::getCoverArtStorageLink)
                 .orElseThrow(NoSuchElementException::new);
     }
 
