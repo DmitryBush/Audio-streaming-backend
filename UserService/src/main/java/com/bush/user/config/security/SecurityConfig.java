@@ -48,7 +48,7 @@ public class SecurityConfig {
                         .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler()))
                 .addFilterBefore(jwtFilter, BasicAuthenticationFilter.class)
                 .authorizeHttpRequests(registry -> registry
-                        .requestMatchers("/actuator/**", "/error").permitAll()
+                        .requestMatchers("/actuator/**", "/error", "/v3/api-docs/**", "/swagger-ui/**").permitAll()
                         .requestMatchers("/api/*/login", "/api/*/register", "/api/*/logout").permitAll()
                         .requestMatchers("/api/*/change-password", "/api/*/refresh-token").fullyAuthenticated()
                         .requestMatchers(HttpMethod.PATCH, "/api/*/users/*/role").hasRole(RoleEnum.ADMIN.name())
