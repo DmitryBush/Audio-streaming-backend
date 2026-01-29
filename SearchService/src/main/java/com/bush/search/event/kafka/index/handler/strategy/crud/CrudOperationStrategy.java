@@ -1,9 +1,23 @@
 package com.bush.search.event.kafka.index.handler.strategy.crud;
 
-import com.bush.search.domain.index.service.Operation;
+import com.bush.search.domain.index.service.CrudOperationConstants;
 
+/**
+ * CRUD operation processing strategy for the target object
+ */
 public interface CrudOperationStrategy {
-    boolean isProcessingSupport(Operation operationType, Class<?> requiredService, Class<?> payloadClazz);
+    /**
+     * Method checks whether the strategy is applicable to target object with the required operation type
+     * @param crudOperationConstantsType Required operation type
+     * @param requiredService Required service for processing
+     * @param payloadClazz Target object type
+     * @return true if strategy is applicable to target object, otherwise false
+     */
+    boolean isProcessingSupport(CrudOperationConstants crudOperationConstantsType, Class<?> requiredService, Class<?> payloadClazz);
 
+    /**
+     * Method processes target object with the required operation type
+     * @param payload Target Object
+     */
     void process(Object payload);
 }

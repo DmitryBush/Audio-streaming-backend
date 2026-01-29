@@ -46,6 +46,12 @@ liquibase:
 outbox:
   transaction-manager-name: playlistTransactionManager
 
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
 eureka:
   client:
     service-url:

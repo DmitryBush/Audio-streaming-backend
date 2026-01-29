@@ -11,19 +11,18 @@ import ohio.rizz.streamingservice.dto.AlbumDto;
 import ohio.rizz.streamingservice.dto.ArtistDto;
 import ohio.rizz.streamingservice.dto.ArtworkDto;
 import ohio.rizz.streamingservice.dto.GenreDto;
-import ohio.rizz.streamingservice.dto.song.AudioMetadataDto;
+import ohio.rizz.streamingservice.dto.song.SongStreamingMetadataDto;
 import ohio.rizz.streamingservice.dto.song.SongDto;
 import ohio.rizz.streamingservice.dto.song.SongReadDto;
 import ohio.rizz.streamingservice.service.album.AlbumService;
 import ohio.rizz.streamingservice.service.artist.ArtistService;
 import ohio.rizz.streamingservice.service.filesystem.FileSystemService;
 import ohio.rizz.streamingservice.service.genre.GenreService;
-import ohio.rizz.streamingservice.service.metadata.MetadataParserService;
+import ohio.rizz.streamingservice.service.metadata.SongMetadataParserService;
 import ohio.rizz.streamingservice.service.song.AudioMetadataService;
 import ohio.rizz.streamingservice.service.song.SongService;
 import ohio.rizz.streamingservice.service.storage.BucketStreamingConstants;
 import ohio.rizz.streamingservice.service.storage.ObjectStorageService;
-import ohio.rizz.streamingservice.service.storage.exception.ObjectStorageException;
 import ohio.rizz.streamingservice.service.type.ContentTypeService;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,20 +33,16 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.IOException;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.ExecutionException;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class UploadService {
-    private final MetadataParserService metadataParserService;
+    private final SongMetadataParserService songMetadataParserService;
     private final ContentTypeService contentTypeService;
     private final FileSystemService fileSystemService;
     private final ObjectStorageService objectStorageService;
@@ -66,7 +61,7 @@ public class UploadService {
         Map<String, CompletableFuture<Void>> asyncTasks = new HashMap<>();
         try {
             multipartFile.transferTo(tempSongFile);
-            final SongDto songDto = metadataParserService.extractMetadataFromFile(tempSongFile);
+            final SongDto songDto = songMetadataParserService.extractMetadataFromFile(tempSongFile);
 
             fillObjectReferenceMap(objectReferencesMap, songDto);
             runAsyncObjectUploadTasks(asyncTasks, tempSongFile, songDto);
@@ -86,17 +81,17 @@ public class UploadService {
     }
 
     private static void fillObjectReferenceMap(Map<String, String> objectReferencesMap, final SongDto songDto) {
-        objectReferencesMap.put(BucketStreamingConstants.AUDIO.getTitle(), songDto.objectReference());
+        objectReferencesMap.put(BucketStreamingConstants.AUDIO.getTitle(), songDto.objectStorageLink());
         objectReferencesMap.put(BucketStreamingConstants.ART.getTitle(),
                 Optional.ofNullable(songDto.albumDto())
                         .map(AlbumDto::artworkDto)
-                        .map(ArtworkDto::objectReference)
+                        .map(ArtworkDto::objectStorageLink)
                         .orElse(""));
     }
 
     private void runAsyncObjectUploadTasks(Map<String, CompletableFuture<Void>> asyncTasks, File tempSongFile, SongDto songDto) {
         asyncTasks.put(BucketStreamingConstants.AUDIO.getTitle(), objectStorageService
-                .saveFileAsync(tempSongFile, BucketStreamingConstants.AUDIO.getTitle(), songDto.objectReference()));
+                .saveFileAsync(tempSongFile, BucketStreamingConstants.AUDIO.getTitle(), songDto.objectStorageLink()));
         asyncTasks.put(BucketStreamingConstants.ART.getTitle(), uploadArtwork(songDto.albumDto()));
     }
 
@@ -107,7 +102,7 @@ public class UploadService {
                         new ByteArrayInputStream(artworkDto.binaryArray()),
                         artworkDto.binaryArray().length,
                         BucketStreamingConstants.ART.getTitle(),
-                        albumDto.artworkDto().objectReference()))
+                        albumDto.artworkDto().objectStorageLink()))
                 .orElse(CompletableFuture.completedFuture(null));
     }
 
@@ -119,8 +114,8 @@ public class UploadService {
         Artist artist = uploadArtistMetadata(artistDto);
         Album album = uploadAlbumMetadata(albumDto, artist);
         SongReadDto songReadDto = songService.createSong(songDto, album);
-        metadataService.createSongMetadata(new AudioMetadataDto(songReadDto.id(), multipartFile.getSize(),
-                multipartFile.getContentType(), songDto.objectReference()));
+        metadataService.createSongMetadata(new SongStreamingMetadataDto(songReadDto.id(), multipartFile.getSize(),
+                multipartFile.getContentType(), songDto.objectStorageLink()));
         return songReadDto;
     }
 
@@ -161,6 +156,7 @@ public class UploadService {
             if (file.delete()) {
                 return;
             }
+            // Pause to unlock file for deletion
             Thread.sleep(100);
         }
         throw new RuntimeException("The temporary file was not deleted due to an unknown error");

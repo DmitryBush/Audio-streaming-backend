@@ -23,6 +23,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+/**
+ * Filter that performs JWT authentication
+ */
 @Component
 @RequiredArgsConstructor
 @Slf4j

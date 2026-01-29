@@ -4,6 +4,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.time.LocalDate;
 
+/**
+ * The payload of album data used in the CDC event
+ */
 public record AlbumPayload(Long id,
                            String name,
                            LocalDate releaseDate,

@@ -1,17 +1,17 @@
 package com.bush.search.event.kafka.index.handler.strategy.crud;
 
-import com.bush.search.domain.index.service.Operation;
+import com.bush.search.domain.index.service.CrudOperationConstants;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public abstract class AbstractCrudOperationStrategy<S, P> implements CrudOperationStrategy {
-    private final Operation operationType;
+    private final CrudOperationConstants crudOperationConstantsType;
     private final Class<S> requiredService;
     private final Class<P> payloadClazz;
 
     @Override
-    public boolean isProcessingSupport(Operation operationType, Class<?> requiredService, Class<?> payloadClazz) {
-        return operationType.equals(this.operationType) && requiredService.equals(this.requiredService)
+    public boolean isProcessingSupport(CrudOperationConstants crudOperationConstantsType, Class<?> requiredService, Class<?> payloadClazz) {
+        return crudOperationConstantsType.equals(this.crudOperationConstantsType) && requiredService.equals(this.requiredService)
                 && payloadClazz.equals(this.payloadClazz);
     }
 
@@ -23,5 +23,9 @@ public abstract class AbstractCrudOperationStrategy<S, P> implements CrudOperati
         }
     }
 
+    /**
+     * Processes the transferred object according to the logic defined in a specific inheritor class
+     * @param payload Target object
+     */
     protected abstract void processInternal(P payload);
 }

@@ -10,6 +10,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
+/**
+ * Service for publishing outbox records
+ */
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true, transactionManager = "outboxTransactionManager")
@@ -18,6 +21,12 @@ public class OutboxService {
 
     private final OutboxCreateMapper outboxCreateMapper;
 
+    /**
+     * Creates an outbox record if the transaction is open
+     * @param outboxMetadataDto Immutable DTO representing a domain operation to be persisted in the outbox
+     * @return Domain payload object
+     * @param <T> Type of domain entity
+     */
     @Transactional(propagation = Propagation.MANDATORY, transactionManager = "outboxTransactionManager")
     public <T> T createRecord(OutboxRecordDto<T> outboxMetadataDto) {
         Optional.of(outboxMetadataDto)

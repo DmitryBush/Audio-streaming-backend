@@ -10,6 +10,7 @@ import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
@@ -31,13 +32,14 @@ public class PlaylistController {
     private final PagedResourcesAssembler<PlaylistTrackDto> trackAssembler;
     private final PagedResourcesAssembler<PlaylistReadDto> playlistAssembler;
 
-    @PostMapping
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<PlaylistReadDto> createPlaylist(@RequestBody @Validated PlaylistCreateDto createDto) {
         String userId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return new ResponseEntity<>(playlistService.createPlaylistInformation(createDto, userId), HttpStatus.CREATED);
     }
 
-    @PutMapping("/{playlistId}")
+    @PutMapping(value = "/{playlistId}", consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<PlaylistReadDto> updatePlaylist(@PathVariable Long playlistId,
                                                           @RequestBody @Validated PlaylistCreateDto createDto) {
         String userId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -51,7 +53,7 @@ public class PlaylistController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @GetMapping("/{playlistId}")
+    @GetMapping(value = "/{playlistId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<PlaylistReadDto> findPlaylistById(@PathVariable Long playlistId) {
         return ResponseEntity.ok(playlistService.findPlaylistById(playlistId));
     }
@@ -68,13 +70,13 @@ public class PlaylistController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @GetMapping("/{playlistId}/tracks")
+    @GetMapping(value = "/{playlistId}/tracks", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<PagedModel<EntityModel<PlaylistTrackDto>>> findPlaylistTracks(@PathVariable Long playlistId, Pageable pageable) {
         PagedModel<EntityModel<PlaylistTrackDto>> tracks = trackAssembler.toModel(playlistService.findPlaylistTracksById(playlistId, pageable));
         return ResponseEntity.ok(tracks);
     }
 
-    @GetMapping
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<PagedModel<EntityModel<PlaylistReadDto>>> findUserPlaylists(Pageable pageable) {
         String userId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         PagedModel<EntityModel<PlaylistReadDto>> playlists =
