@@ -156,6 +156,7 @@ public class UploadService {
             if (file.delete()) {
                 return;
             }
+            // Pause to unlock file for deletion
             Thread.sleep(100);
         }
         throw new RuntimeException("The temporary file was not deleted due to an unknown error");
