@@ -18,7 +18,7 @@ import ohio.rizz.streamingservice.service.album.AlbumService;
 import ohio.rizz.streamingservice.service.artist.ArtistService;
 import ohio.rizz.streamingservice.service.filesystem.FileSystemService;
 import ohio.rizz.streamingservice.service.genre.GenreService;
-import ohio.rizz.streamingservice.service.metadata.MetadataParserService;
+import ohio.rizz.streamingservice.service.metadata.SongMetadataParserService;
 import ohio.rizz.streamingservice.service.song.AudioMetadataService;
 import ohio.rizz.streamingservice.service.song.SongService;
 import ohio.rizz.streamingservice.service.storage.BucketStreamingConstants;
@@ -42,7 +42,7 @@ import java.util.concurrent.CompletableFuture;
 @RequiredArgsConstructor
 @Slf4j
 public class UploadService {
-    private final MetadataParserService metadataParserService;
+    private final SongMetadataParserService songMetadataParserService;
     private final ContentTypeService contentTypeService;
     private final FileSystemService fileSystemService;
     private final ObjectStorageService objectStorageService;
@@ -61,7 +61,7 @@ public class UploadService {
         Map<String, CompletableFuture<Void>> asyncTasks = new HashMap<>();
         try {
             multipartFile.transferTo(tempSongFile);
-            final SongDto songDto = metadataParserService.extractMetadataFromFile(tempSongFile);
+            final SongDto songDto = songMetadataParserService.extractMetadataFromFile(tempSongFile);
 
             fillObjectReferenceMap(objectReferencesMap, songDto);
             runAsyncObjectUploadTasks(asyncTasks, tempSongFile, songDto);
