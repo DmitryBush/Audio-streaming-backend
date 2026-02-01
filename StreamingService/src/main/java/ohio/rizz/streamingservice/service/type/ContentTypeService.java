@@ -1,7 +1,6 @@
 package ohio.rizz.streamingservice.service.type;
 
 import lombok.RequiredArgsConstructor;
-import ohio.rizz.streamingservice.service.type.chain.AbstractSuffixTypeGetterHandler;
 import ohio.rizz.streamingservice.service.type.chain.SuffixTypeGetterHandler;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -30,6 +29,6 @@ public class ContentTypeService {
         if (dotIndex <= 0 || dotIndex == filename.length() - 1) {
             return "";
         }
-        return filename.substring(dotIndex, filename.length() - 1);
+        return filename.substring(dotIndex);
     }
 }
