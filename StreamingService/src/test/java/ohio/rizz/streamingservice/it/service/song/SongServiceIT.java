@@ -1,4 +1,4 @@
-package ohio.rizz.streamingservice.it.service.album;
+package ohio.rizz.streamingservice.it.service.song;
 
 import com.redis.testcontainers.RedisContainer;
 import ohio.rizz.streamingservice.dto.AlbumDto;
@@ -8,9 +8,12 @@ import ohio.rizz.streamingservice.dto.ArtistReadDto;
 import ohio.rizz.streamingservice.dto.ArtworkDto;
 import ohio.rizz.streamingservice.dto.GenreDto;
 import ohio.rizz.streamingservice.dto.GenreReadDto;
+import ohio.rizz.streamingservice.dto.song.SongDto;
+import ohio.rizz.streamingservice.dto.song.SongReadDto;
 import ohio.rizz.streamingservice.service.album.AlbumService;
 import ohio.rizz.streamingservice.service.artist.ArtistService;
 import ohio.rizz.streamingservice.service.genre.GenreService;
+import ohio.rizz.streamingservice.service.song.SongService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,14 +34,16 @@ import java.util.UUID;
 @Testcontainers
 @SpringBootTest
 @ActiveProfiles("test")
-public class AlbumServiceIT {
+public class SongServiceIT {
     @Autowired
-    private AlbumService albumService;
+    private SongService service;
 
     @Autowired
     private GenreService genreService;
     @Autowired
     private ArtistService artistService;
+    @Autowired
+    private AlbumService albumService;
 
     @ServiceConnection
     static PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("postgres:18.0-alpine");
@@ -56,21 +61,24 @@ public class AlbumServiceIT {
         registry.add("spring.data.redis.port", () -> redisContainer.getMappedPort(6379));
     }
 
-    @Test
     @Transactional
-    public void createAlbum() {
+    @Test
+    public void createSong() {
         byte[] artworkData = new byte[] {1, 0, 1};
         ArtworkDto artworkDto = new ArtworkDto(UUID.nameUUIDFromBytes("art".getBytes()).toString(), artworkData);
         GenreDto genreDto = new GenreDto("example");
         ArtistDto artist = new ArtistDto("example");
         AlbumDto albumDto = new AlbumDto("example", LocalDate.now(), (short) 1, genreDto, artworkDto);
+        SongDto songDto = new SongDto("example", (short) 1, 17, (short) 1,
+                artworkDto.objectStorageLink(), artist, albumDto);
 
         GenreReadDto genreReadDto = genreService.createGenre(genreDto);
         ArtistReadDto artistReadDto = artistService.createArtist(artist);
-
         AlbumReadDto albumReadDto = albumService.createAlbum(albumDto,
                 artistService.getReferenceById(artistReadDto.id()), genreService.getReferenceById(genreReadDto.id()));
 
-        Assertions.assertEquals(albumReadDto, albumService.findAlbumById(albumReadDto.id()));
+        SongReadDto songReadDto = service.createSong(songDto, albumService.getReferenceById(albumReadDto.id()));
+
+        Assertions.assertEquals(songReadDto, service.findById(songReadDto.id()));
     }
 }
