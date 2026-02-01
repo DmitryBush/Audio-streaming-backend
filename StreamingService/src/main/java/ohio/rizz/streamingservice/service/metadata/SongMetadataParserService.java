@@ -15,6 +15,9 @@ import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.TagException;
 import org.jaudiotagger.tag.TagField;
+import org.jaudiotagger.tag.TagTextField;
+import org.jaudiotagger.tag.id3.AggregatedFrame;
+import org.jaudiotagger.tag.id3.TyerTdatAggregatedFrame;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 
@@ -75,11 +78,7 @@ public class SongMetadataParserService {
                 .orElse(null);
 
         var releaseDate = Optional.ofNullable(tag.getFirstField(FieldKey.YEAR))
-                .map(TagField::toString)
-                .map(SongMetadataParserService::removeZeroBit)
-                .map(this::extractMetadataText)
-                .map(year -> String.format("%s-01-01", year))
-                .map(LocalDate::parse)
+                .map(SongMetadataParserService::extractDateFromTag)
                 .orElse(null);
         var genre = Optional.ofNullable(tag.getFirstField(FieldKey.GENRE))
                 .map(TagField::toString)
@@ -144,6 +143,23 @@ public class SongMetadataParserService {
 
     private static String removeZeroBit(String s) {
         return s.replaceAll("\\x00", "");
+    }
+
+    private static LocalDate extractDateFromTag(TagField tagField) {
+        String tagDateString;
+        // Class that processing ID3 doesn't have toString() override method,
+        // which results in the output of the class name and it's memory location
+        if (tagField.getClass().isAssignableFrom(TyerTdatAggregatedFrame.class)) {
+            tagDateString = ((TagTextField) tagField).getContent();
+        } else {
+            tagDateString = tagField.toString();
+        }
+
+        if (tagDateString.trim().matches("^\\d+-\\d{1,2}-\\d{1,2}$")) {
+            return LocalDate.parse(tagDateString);
+        } else {
+            return LocalDate.parse(String.format("%s-01-01", tagField));
+        }
     }
 
     /**
