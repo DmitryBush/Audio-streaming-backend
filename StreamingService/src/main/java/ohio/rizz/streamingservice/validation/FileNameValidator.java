@@ -10,7 +10,7 @@ public class FileNameValidator {
         if (Objects.isNull(filename)) {
             throw new IllegalArgumentException("Filename couldn't be null");
         }
-        if (filename.isBlank()) {
+        if (filename.isBlank() || filename.length() > 255) {
             throw new IllegalArgumentException("File length doesn't match maximum OS file length or blank");
         }
         if (filename.contains("..") || filename.contains("\\") || filename.contains("/")) {
