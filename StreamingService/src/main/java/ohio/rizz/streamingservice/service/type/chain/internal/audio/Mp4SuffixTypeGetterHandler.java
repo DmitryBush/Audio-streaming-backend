@@ -11,6 +11,6 @@ public class Mp4SuffixTypeGetterHandler extends AbstractSuffixTypeGetterHandler 
 
     @Override
     protected String getSuffix(String contentType) {
-        return ".mp4";
+        return ".m4a";
     }
 }

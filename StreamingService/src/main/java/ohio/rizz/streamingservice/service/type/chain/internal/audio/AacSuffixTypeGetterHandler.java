@@ -11,6 +11,6 @@ public class AacSuffixTypeGetterHandler extends AbstractSuffixTypeGetterHandler 
 
     @Override
     protected String getSuffix(String contentType) {
-        return ".aac";
+        return ".m4a";
     }
 }
