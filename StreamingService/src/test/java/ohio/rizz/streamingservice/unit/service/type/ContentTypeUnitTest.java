@@ -8,6 +8,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.util.ResourceUtils;
 import org.springframework.web.multipart.MultipartFile;
 import org.testcontainers.containers.MinIOContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -16,6 +17,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
 @Testcontainers
@@ -36,7 +38,7 @@ public class ContentTypeUnitTest {
     @Test
     public void testFlacMultipartGetSuffix() throws IOException {
         try (FileInputStream inputStream =
-                     new FileInputStream("src/test/java/ohio/rizz/streamingservice/resource/Test_FLAC.flac")) {
+                     new FileInputStream(ResourceUtils.getFile("classpath:test/resource/Test_FLAC.flac"))) {
             MultipartFile mockMultipartFile = new MockMultipartFile(
                     "Test_FLAC.flac",
                     "Test_FLAC.flac",
@@ -50,7 +52,7 @@ public class ContentTypeUnitTest {
     @Test
     public void testMp3MultipartGetSuffix() throws IOException {
         try (FileInputStream inputStream =
-                     new FileInputStream("src/test/java/ohio/rizz/streamingservice/resource/Test_MP3.mp3")) {
+                     new FileInputStream(ResourceUtils.getFile("classpath:test/resource/Test_Mp3.mp3"))) {
             MultipartFile mockMultipartFile = new MockMultipartFile(
                     "Test_MP3.mp3",
                     "Test_MP3.mp3",
@@ -64,7 +66,7 @@ public class ContentTypeUnitTest {
     @Test
     public void testAacMultipartGetSuffix() throws IOException {
         try (FileInputStream inputStream =
-                     new FileInputStream("src/test/java/ohio/rizz/streamingservice/resource/Test_AAC.m4a")) {
+                     new FileInputStream(ResourceUtils.getFile("classpath:test/resource/Test_AAC.m4a"))) {
             MultipartFile mockMultipartFile = new MockMultipartFile(
                     "Test_AAC.m4a",
                     "Test_AAC.m4a",
@@ -78,7 +80,7 @@ public class ContentTypeUnitTest {
     @Test
     public void testOggMultipartGetSuffix() throws IOException {
         try (FileInputStream inputStream =
-                     new FileInputStream("src/test/java/ohio/rizz/streamingservice/resource/Test_OGG.ogg")) {
+                     new FileInputStream(ResourceUtils.getFile("classpath:test/resource/Test_OGG.ogg"))) {
             MultipartFile mockMultipartFile = new MockMultipartFile(
                     "Test_OGG.ogg",
                     "Test_OGG.ogg",
@@ -92,7 +94,7 @@ public class ContentTypeUnitTest {
     @Test
     public void testWavMultipartGetSuffix() throws IOException {
         try (FileInputStream inputStream =
-                     new FileInputStream("src/test/java/ohio/rizz/streamingservice/resource/Test_WAV.wav")) {
+                     new FileInputStream(ResourceUtils.getFile("classpath:test/resource/Test_WAV.wav"))) {
             MultipartFile mockMultipartFile = new MockMultipartFile(
                     "Test_WAV.wav",
                     "Test_WAV.wav",
@@ -106,7 +108,7 @@ public class ContentTypeUnitTest {
     @Test
     public void testWmaMultipartGetSuffix() throws IOException {
         try (FileInputStream inputStream =
-                     new FileInputStream("src/test/java/ohio/rizz/streamingservice/resource/Test_WMA.wma")) {
+                     new FileInputStream(ResourceUtils.getFile("classpath:test/resource/Test_WMA.wma"))) {
             MultipartFile mockMultipartFile = new MockMultipartFile(
                     "Test_WMA.wma",
                     "Test_WMA.wma",
@@ -162,8 +164,8 @@ public class ContentTypeUnitTest {
     }
 
     @Test
-    public void testGetSuffixByFile() {
-        File file = new File("src/test/java/ohio/rizz/streamingservice/resource/Test_FLAC.flac");
+    public void testGetSuffixByFile() throws FileNotFoundException {
+        File file = ResourceUtils.getFile("classpath:test/resource/Test_FLAC.flac");
         Assertions.assertEquals(".flac", contentTypeService.getSuffix(file));
     }
 }

@@ -11,6 +11,7 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.util.ResourceUtils;
 import org.springframework.web.multipart.MultipartFile;
 import org.testcontainers.containers.MinIOContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -48,7 +49,7 @@ public class UploadServiceIT {
 
     @Test
     public void testFlacUpload() throws IOException {
-        File file = new File("src/test/java/ohio/rizz/streamingservice/resource/Test_FLAC.flac");
+        File file = ResourceUtils.getFile("classpath:test/resource/Test_FLAC.flac");
         try (FileInputStream inputStream = new FileInputStream(file)) {
             MultipartFile mockMultipartFile = new MockMultipartFile(
                     "Test_FLAC.flac",
@@ -62,7 +63,7 @@ public class UploadServiceIT {
 
     @Test
     public void testAacUpload() throws IOException {
-        File file = new File("src/test/java/ohio/rizz/streamingservice/resource/Test_AAC.m4a");
+        File file = ResourceUtils.getFile("classpath:test/resource/Test_AAC.m4a");
         try (FileInputStream inputStream = new FileInputStream(file)) {
             MultipartFile mockMultipartFile = new MockMultipartFile(
                     "Test_AAC.m4a",
@@ -76,7 +77,7 @@ public class UploadServiceIT {
 
     @Test
     public void testAlacUpload() throws IOException {
-        File file = new File("src/test/java/ohio/rizz/streamingservice/resource/Test_ALAC.m4a");
+        File file = ResourceUtils.getFile("classpath:test/resource/Test_ALAC.m4a");
         try (FileInputStream inputStream = new FileInputStream(file)) {
             MultipartFile mockMultipartFile = new MockMultipartFile(
                     "Test_ALAC.m4a",
@@ -90,7 +91,7 @@ public class UploadServiceIT {
 
     @Test
     public void testMp3Upload() throws IOException {
-        File file = new File("src/test/java/ohio/rizz/streamingservice/resource/Test_MP3.mp3");
+        File file = ResourceUtils.getFile("classpath:test/resource/Test_MP3.mp3");
         try (FileInputStream inputStream = new FileInputStream(file)) {
             MultipartFile mockMultipartFile = new MockMultipartFile(
                     "Test_MP3.mp3",
@@ -104,7 +105,7 @@ public class UploadServiceIT {
 
     @Test
     public void testOggUpload() throws IOException {
-        File file = new File("src/test/java/ohio/rizz/streamingservice/resource/Test_OGG.ogg");
+        File file = ResourceUtils.getFile("classpath:test/resource/Test_OGG.ogg");
         try (FileInputStream inputStream = new FileInputStream(file)) {
             MultipartFile mockMultipartFile = new MockMultipartFile(
                     "Test_OGG.ogg",
@@ -118,7 +119,7 @@ public class UploadServiceIT {
 
     @Test
     public void testWavUpload() throws IOException {
-        File file = new File("src/test/java/ohio/rizz/streamingservice/resource/Test_WAV.wav");
+        File file = ResourceUtils.getFile("classpath:test/resource/Test_WAV.wav");
         try (FileInputStream inputStream = new FileInputStream(file)) {
             MultipartFile mockMultipartFile = new MockMultipartFile(
                     "Test_WAV.wav",
@@ -132,7 +133,7 @@ public class UploadServiceIT {
 
     @Test
     public void testWmaUpload() throws IOException {
-        File file = new File("src/test/java/ohio/rizz/streamingservice/resource/Test_WMA.wma");
+        File file = ResourceUtils.getFile("classpath:test/resource/Test_WMA.wma");
         try (FileInputStream inputStream = new FileInputStream(file)) {
             MultipartFile mockMultipartFile = new MockMultipartFile(
                     "Test_WMA.wma",

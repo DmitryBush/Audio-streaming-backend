@@ -13,6 +13,7 @@ import org.springframework.boot.testcontainers.service.connection.ServiceConnect
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.util.ResourceUtils;
 import org.testcontainers.containers.MinIOContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
@@ -20,6 +21,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.UUID;
@@ -47,8 +49,8 @@ public class ObjectStorageServiceIT {
     }
 
     @Test
-    public void testSaveFile() {
-        File testFile = new File("src/test/java/ohio/rizz/streamingservice/resource/Test_FLAC.flac");
+    public void testSaveFile() throws FileNotFoundException {
+        File testFile = ResourceUtils.getFile("classpath:test/resource/Test_FLAC.flac");
         String objectLink = UUID.nameUUIDFromBytes(testFile.getName().getBytes()).toString();
 
         objectStorageService.saveFile(testFile, BucketStreamingConstants.AUDIO.getTitle(), objectLink);
@@ -58,8 +60,8 @@ public class ObjectStorageServiceIT {
     }
 
     @Test
-    public void testSaveAsyncFile() {
-        File testFile = new File("src/test/java/ohio/rizz/streamingservice/resource/Test_FLAC.flac");
+    public void testSaveAsyncFile() throws FileNotFoundException {
+        File testFile = ResourceUtils.getFile("classpath:test/resource/Test_FLAC.flac");
         String objectLink = UUID.nameUUIDFromBytes(testFile.getName().getBytes()).toString();
 
         CompletableFuture<Void> completableFuture = objectStorageService
@@ -73,7 +75,7 @@ public class ObjectStorageServiceIT {
 
     @Test
     public void testSaveStreamFile() throws IOException {
-        File testFile = new File("src/test/java/ohio/rizz/streamingservice/resource/Test_FLAC.flac");
+        File testFile = ResourceUtils.getFile("classpath:test/resource/Test_FLAC.flac");
         String objectLink = UUID.nameUUIDFromBytes(testFile.getName().getBytes()).toString();
         try (FileInputStream inputStream = new FileInputStream(testFile)) {
             objectStorageService.saveFile(inputStream, testFile.length(),
@@ -85,7 +87,7 @@ public class ObjectStorageServiceIT {
 
     @Test
     public void testSaveAsyncStreamFile() throws IOException {
-        File testFile = new File("src/test/java/ohio/rizz/streamingservice/resource/Test_FLAC.flac");
+        File testFile = ResourceUtils.getFile("classpath:test/resource/Test_FLAC.flac");
         String objectLink = UUID.nameUUIDFromBytes(testFile.getName().getBytes()).toString();
         try (FileInputStream inputStream = new FileInputStream(testFile)) {
             CompletableFuture<Void> completableFuture = objectStorageService.saveFileAsync(inputStream, testFile.length(),
@@ -98,8 +100,8 @@ public class ObjectStorageServiceIT {
     }
 
     @Test
-    public void testDeleteFile() {
-        File testFile = new File("src/test/java/ohio/rizz/streamingservice/resource/Test_FLAC.flac");
+    public void testDeleteFile() throws FileNotFoundException {
+        File testFile = ResourceUtils.getFile("classpath:test/resource/Test_FLAC.flac");
         String objectLink = UUID.nameUUIDFromBytes(testFile.getName().getBytes()).toString();
 
         objectStorageService.saveFile(testFile, BucketStreamingConstants.AUDIO.getTitle(), objectLink);
@@ -108,8 +110,8 @@ public class ObjectStorageServiceIT {
     }
 
     @Test
-    public void testLoadStreamResource() {
-        File testFile = new File("src/test/java/ohio/rizz/streamingservice/resource/Test_FLAC.flac");
+    public void testLoadStreamResource() throws FileNotFoundException {
+        File testFile = ResourceUtils.getFile("classpath:test/resource/Test_FLAC.flac");
         String objectLink = UUID.nameUUIDFromBytes(testFile.getName().getBytes()).toString();
 
         objectStorageService.saveFile(testFile, BucketStreamingConstants.AUDIO.getTitle(), objectLink);

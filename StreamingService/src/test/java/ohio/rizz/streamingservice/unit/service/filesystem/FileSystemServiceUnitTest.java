@@ -11,6 +11,7 @@ import org.springframework.boot.testcontainers.service.connection.ServiceConnect
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.util.ResourceUtils;
 import org.springframework.web.multipart.MultipartFile;
 import org.testcontainers.containers.MinIOContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -19,6 +20,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
@@ -41,12 +43,12 @@ public class FileSystemServiceUnitTest {
             .withPassword("minioadmin");
 
     @Test
-    public void testTemporalFileCreatingByMultipart() {
-        String testFilePath = "src/test/java/ohio/rizz/streamingservice/unit/service/metadata/Test_FLAC.flac";
+    public void testTemporalFileCreatingByMultipart() throws FileNotFoundException {
+        String testFilePath = "classpath:test/resource/Test_FLAC.flac";
         File tempFile;
         Mockito.doNothing().when(fileNameValidator).validateFileName(Mockito.anyString());
 
-        try (InputStream inputStream = new FileInputStream(testFilePath)) {
+        try (InputStream inputStream = new FileInputStream(ResourceUtils.getFile(testFilePath))) {
             MultipartFile mockMultipartFile = new MockMultipartFile("Test_Flac.flac",
                     "Test_Flac.flac", "audio/flac", inputStream);
             tempFile = fileSystemService.createTemporalFile(mockMultipartFile, ".flac");

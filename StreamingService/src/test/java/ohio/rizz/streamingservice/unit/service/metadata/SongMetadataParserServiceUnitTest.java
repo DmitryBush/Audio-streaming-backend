@@ -4,16 +4,18 @@ import ohio.rizz.streamingservice.dto.song.SongDto;
 import ohio.rizz.streamingservice.service.metadata.SongMetadataParserService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.springframework.util.ResourceUtils;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.time.LocalDate;
 
 public class SongMetadataParserServiceUnitTest {
     private final SongMetadataParserService songMetadataParserService = new SongMetadataParserService();
 
     @Test
-    public void testWavParsing() {
-        File testFile = new File("src/test/java/ohio/rizz/streamingservice/unit/service/metadata/Test_WAV.wav");
+    public void testWavParsing() throws FileNotFoundException {
+        File testFile = ResourceUtils.getFile("classpath:test/resource/Test_WAV.wav");
 
         SongDto parsedSongData = songMetadataParserService.extractMetadataFromFile(testFile);
 
@@ -24,8 +26,8 @@ public class SongMetadataParserServiceUnitTest {
     }
 
     @Test
-    public void testFlacParsing() {
-        File testFile = new File("src/test/java/ohio/rizz/streamingservice/unit/service/metadata/Test_FLAC.flac");
+    public void testFlacParsing() throws FileNotFoundException {
+        File testFile = ResourceUtils.getFile("classpath:test/resource/Test_FLAC.flac");
 
         SongDto parsedSongData = songMetadataParserService.extractMetadataFromFile(testFile);
 
@@ -40,8 +42,8 @@ public class SongMetadataParserServiceUnitTest {
     }
 
     @Test
-    public void testMp3Parsing() {
-        File testFile = new File("src/test/java/ohio/rizz/streamingservice/unit/service/metadata/Test_MP3.mp3");
+    public void testMp3Parsing() throws FileNotFoundException {
+        File testFile = ResourceUtils.getFile("classpath:test/resource/Test_MP3.mp3");;
 
         SongDto parsedSongData = songMetadataParserService.extractMetadataFromFile(testFile);
 
@@ -56,8 +58,8 @@ public class SongMetadataParserServiceUnitTest {
     }
 
     @Test
-    public void testOggParsing() {
-        File testFile = new File("src/test/java/ohio/rizz/streamingservice/unit/service/metadata/Test_OGG.ogg");
+    public void testOggParsing() throws FileNotFoundException {
+        File testFile = ResourceUtils.getFile("classpath:test/resource/Test_OGG.ogg");
 
         SongDto parsedSongData = songMetadataParserService.extractMetadataFromFile(testFile);
 
@@ -72,8 +74,8 @@ public class SongMetadataParserServiceUnitTest {
     }
 
     @Test
-    public void testWmaParsing() {
-        File testFile = new File("src/test/java/ohio/rizz/streamingservice/unit/service/metadata/Test_WMA.wma");
+    public void testWmaParsing() throws FileNotFoundException {
+        File testFile = ResourceUtils.getFile("classpath:test/resource/Test_WMA.wma");
 
         SongDto parsedSongData = songMetadataParserService.extractMetadataFromFile(testFile);
 
@@ -88,8 +90,8 @@ public class SongMetadataParserServiceUnitTest {
     }
 
     @Test
-    public void testAlacParsing() {
-        File testFile = new File("src/test/java/ohio/rizz/streamingservice/unit/service/metadata/Test_ALAC.m4a");
+    public void testAlacParsing() throws FileNotFoundException {
+        File testFile = ResourceUtils.getFile("classpath:test/resource/Test_ALAC.m4a");
 
         SongDto parsedSongData = songMetadataParserService.extractMetadataFromFile(testFile);
 
@@ -104,8 +106,8 @@ public class SongMetadataParserServiceUnitTest {
     }
 
     @Test
-    public void testAacParsing() {
-        File testFile = new File("src/test/java/ohio/rizz/streamingservice/unit/service/metadata/Test_ALAC.m4a");
+    public void testAacParsing() throws FileNotFoundException {
+        File testFile = ResourceUtils.getFile("classpath:test/resource/Test_AAC.m4a");
 
         SongDto parsedSongData = songMetadataParserService.extractMetadataFromFile(testFile);
 
