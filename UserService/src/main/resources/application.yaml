@@ -36,6 +36,8 @@ spring:
       secret-key: ${SECRET_SIGNING_KEY}
       access-token-expiration: 1h
       refresh-token-expiration: 7d
+  threads:
+    virtual: enabled
 
 liquibase:
   user:

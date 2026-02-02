@@ -36,6 +36,8 @@ spring:
       secret-key: c3VwZXItbWVnYS11bHRyYS1wcm8tc2VjcmV0LXlvdS1ldmVuLWdldC1pdC1zaWduaW5nLWtleQ==
       access-token-expiration: 1h
       refresh-token-expiration: 7d
+  threads:
+    virtual: enabled
 
 liquibase:
   user:

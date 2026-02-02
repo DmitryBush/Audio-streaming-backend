@@ -21,6 +21,8 @@ spring:
     consumer:
       bootstrap-servers: localhost:9096
       trusted-packages: com.bush.search.event.kafka
+  threads:
+    virtual: enabled
 
 server:
   port: 8082
