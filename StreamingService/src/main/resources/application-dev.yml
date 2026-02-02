@@ -20,6 +20,8 @@ spring:
       port: 6379
   cache:
     type: redis
+  threads:
+    virtual: enabled
 
 logging:
   level:
@@ -39,7 +41,7 @@ springdoc:
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761
+      defaultZone: http://localhost:8761/eureka
 
 storage-service:
   endpoint: http://127.0.0.1:9000

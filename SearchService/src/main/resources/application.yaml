@@ -21,6 +21,8 @@ spring:
     consumer:
       bootstrap-servers: ${KAFKA_REINDEX_BOOTSTRAP_SERVERS}
       trusted-packages: com.bush.search.event.kafka
+  threads:
+    virtual: enabled
 
 springdoc:
   api-docs:
