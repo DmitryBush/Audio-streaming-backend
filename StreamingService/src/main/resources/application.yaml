@@ -20,6 +20,8 @@ spring:
       port: ${REDIS_PORT}
   cache:
     type: redis
+  threads:
+    virtual: enabled
 
 storage-service:
   endpoint: ${OBJECT_STORAGE_URL}

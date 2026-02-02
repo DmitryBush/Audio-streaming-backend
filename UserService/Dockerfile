@@ -1,4 +1,4 @@
-FROM gradle:jdk17 AS builder
+FROM gradle:jdk25-alpine AS builder
 
 WORKDIR /build
 COPY OutboxLibrary/build.gradle.kts ./OutboxLibrary/
@@ -20,7 +20,7 @@ COPY settings.gradle.kts .
 
 RUN gradle UserService:bootJar -x test --parallel
 
-FROM amazoncorretto:17-alpine
+FROM amazoncorretto:25-alpine
 
 WORKDIR /app
 COPY --from=builder /build/UserService/build/libs/*.jar user-app.jar

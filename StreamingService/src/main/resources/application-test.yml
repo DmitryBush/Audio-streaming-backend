@@ -26,6 +26,8 @@ spring:
     service-registry:
       auto-registration:
         enabled: false
+  threads:
+    virtual: enabled
 
 logging:
   level:
